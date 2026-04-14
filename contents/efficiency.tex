@@ -1,14 +1,19 @@
 \section{Efficiency Analysis}
 \label{sec:efficiency}
 
-We now quantify the practical overhead of the TVS screening loop against the savings it yields downstream. To remain comparable across hardware, API endpoints, and network conditions, we report \textit{hardware-agnostic proxies}---LLM/tool/caption call counts, output tokens, duration reduction, and screening success rate---together with closed-loop metrics under realistic frame budgets. Per-dataset cost drivers and screening effectiveness for both variants are reported in Appendix~\ref{appendix:efficiency_full}; we summarize the headline observations here. ReSimplifyIt-simple averages only ${\sim}22$ captions, $3$--$10$ LLM calls, and $300$--$1{,}500$ output tokens per sample, with a screening success rate of $94.4\%$--$100\%$ across all seven benchmarks. Both variants reduce videos to a small fraction of their original duration on successfully screened samples---down to $1.9\%$ (simple) and $4.8\%$ (full) on LVBench---with compression strongest on the longest benchmarks.
+We now quantify the practical overhead of the TVS screening loop against the savings it yields downstream. To remain comparable across hardware, API endpoints, and network conditions, we report \textit{hardware-agnostic proxies}---LLM/tool/caption call counts, output tokens, duration reduction, and screening success rate---together with closed-loop metrics under realistic frame budgets.
+
+\paragraph{Cost drivers and screening effectiveness.}
+For each sample we record the number of external LLM turns, tool invocations, total captions, and output tokens, together with the duration ratios $\mathrm{DurAll} = \mathbb{E}[|v|/|V|]$ and $\mathrm{DurScrn}$ (restricted to successfully screened samples), and $\mathrm{Screen\%}$, the fraction of samples for which $\mathcal{F}_{\mathrm{TVS}}(V,Q) \ne (V,Q)$. Per-dataset values for both variants are reported in Appendix~\ref{appendix:efficiency_full}. ReSimplifyIt-simple averages only ${\sim}22$ captions, $3$--$10$ LLM calls, and $300$--$1{,}500$ output tokens per sample, with a screening success rate of $94.4\%$--$100\%$ across all seven benchmarks. The full multi-agent ReSimplifyIt uses more resources due to its iterative refinement, with roughly half of its captions passively embedded in agent prompts and the rest actively fetched via the Viewer's tools. Both variants reduce videos to a small fraction of their original duration on successfully screened samples---down to $1.9\%$ (simple) and $4.8\%$ (full) on LVBench---with compression strongest on the longest benchmarks.
 
 \paragraph{Closing the loop under fixed frame budgets.}
-A naive comparison via the count of downstream frames is misleading: a fixed budget of $K$ frames sampled uniformly over a long video is extremely sparse and may under-cover the evidence, while the same $K$ frames concentrated on the screened segment yield much denser coverage. Define \textbf{density amplification} $\mathrm{DensAmp} = \mathbb{E}[1/\mathrm{DurRatio}]$, so that $K$ post-screening frames provide the same evidence density as $K \cdot \mathrm{DensAmp}$ frames over the original video. The total visual sampling cost of TVS plus downstream is $K + \mathrm{TotalCap}$, and we define the \textbf{visual cost ratio}
-\[
-\mathrm{CostRatio}(K) = \frac{K + \mathrm{TotalCap}}{K \cdot \mathrm{DensAmp}}.
-\]
-A lower $\mathrm{CostRatio}$ means TVS achieves the same effective evidence density at a smaller fraction of the dense-sampling cost: $\mathrm{CostRatio}{=}0.1$ means the no-TVS baseline would incur $10\times$ the frame-sampling cost. We further report $\mathrm{OutTok/1\%Red}$, the average output-token cost of each $1\%$ of duration reduction.
+A naive comparison via the count of downstream frames is misleading: a fixed budget of $K$ frames sampled uniformly over a long video is extremely sparse and may under-cover the evidence, while the same $K$ frames concentrated on the screened segment yield much denser coverage. To make this precise, we define
+\begin{align*}
+\mathrm{DensAmp} &= \mathbb{E}[1/\mathrm{DurRatio}], \\
+\mathrm{EquivFr}(K) &= K \cdot \mathrm{DensAmp}, \\
+\mathrm{CostRatio}(K) &= \frac{K + \mathrm{TotalCap}}{K \cdot \mathrm{DensAmp}}.
+\end{align*}
+Here $\mathrm{DensAmp}$ quantifies how much denser downstream sampling becomes after screening, so that $K$ post-screening frames are equivalent to $\mathrm{EquivFr}(K)$ uniformly sampled frames over the original video. The total visual sampling cost of TVS plus downstream is $K + \mathrm{TotalCap}$, and $\mathrm{CostRatio}(K)$ expresses this total cost as a fraction of the dense-sampling cost needed to reach the same evidence density. A lower $\mathrm{CostRatio}$ therefore means TVS achieves the same effective evidence density at a smaller fraction of the dense-sampling cost: $\mathrm{CostRatio}{=}0.1$ means the no-TVS baseline would incur $10\times$ the frame-sampling cost \emph{to reach the same evidence density}. We further report $\mathrm{OutTok/1\%Red}$, the average output-token cost of each $1\%$ of duration reduction.
 
 \begin{table}[!t]
   \centering
