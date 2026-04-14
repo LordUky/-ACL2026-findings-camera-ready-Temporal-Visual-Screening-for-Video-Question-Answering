@@ -32,7 +32,7 @@ Drawing inspirations from \textit{dynamic and interactive attention deployment} 
 
 \paragraph{Initiating a TVS Round: Launcher drafting a video trimming instruction}
 
-The TVS process unfolds over iterative rounds, akin to how humans drag the progress bar multiple times based solely on empirical surmise before actually viewing the video content. In each round~$r$, a \textbf{Launcher} module generates a trimming instruction~$i_r$ and a revised query~$q_r$ as a trial, which trimming instruction may only contain \textit{high-level} semantics yielding a declarative goal (e.g. ``keep the clip after event X'' instead of ``clip([5s,10s])''), based solely on the previous query~$q_{r-1}$, without vision access. This trial-based methodology strikes an effective balance between performance and efficiency as the inherent semantic relevance between the query and video input can thereby serve as a prior to enabling plausible instruction generation without video access.
+The TVS process unfolds over iterative rounds, akin to how humans drag the progress bar multiple times based solely on empirical surmise before actually viewing the video content. In each round~$r$, a \textbf{Launcher} module generates a trimming instruction~$i_r$ and a revised query~$q_r$ as a trial, where the trimming instruction may only contain \textit{high-level} semantics yielding a declarative goal (e.g. ``keep the clip after event X'' instead of ``clip([5s,10s])''), based solely on the previous query~$q_{r-1}$, without vision access. This trial-based methodology strikes an effective balance between performance and efficiency as the inherent semantic relevance between the query and video input can thereby serve as a prior to enabling plausible instruction generation without video access.
 
 Akin to human landing on undesired segments after dragging the progress bar, we equip the Launcher module with self-correction based adaptive refinement mechanisms to tackle rare failure cases and ensure correctness. Specifically, we maintain two memory tracker modules: \textbf{Success History (SH)} and \textbf{Failure History (FH)}. A successful trial is added to $SH$ and terminates the round; otherwise, it is recorded in $FH$ and retriggers the Launcher with updated feedback.
 
@@ -102,17 +102,17 @@ Algorithms of the keyframe extraction and localization stages are provided in ap
 \subsection{TVS-guided inference}
 \label{subsection:tvs-guided-inference}
 
-Attributed to its endomorphic property, TVS can serve as a plug-and-play adapter process for any VideoQA pipeline, including both inference and training stages. Given the input question $q$ and video $V$, TVS-guided inference is conducted as:
+Attributed to its endomorphic property, TVS can serve as a plug-and-play adapter process for any VideoQA pipeline, including both inference and training stages. Given the input question $Q$ and video $V$, TVS-guided inference is conducted as:
 
-$$ response = VideoQA(V', q') $$
-$$ V', q' = TVS(V, q) $$
+$$ response = VideoQA(v, q) $$
+$$ v, q = TVS(V, Q) $$
 
 where $VideoQA$ can be \emph{any} VideoQA pipeline, including video-LLMs, LLM-assisted pipelines, or any others alternatives, and $TVS()$ stands for the Temporal Visual Screening process. 
 
 
 \subsection{TVS-guided training}
 \label{subsection:tvs-guided-training}
-TVS can also be applied to training stage to purify supervision signal. Given input question $q$, input video $V$, and ground truth answer $a$, we compute the likelihood during the TVS-guided training as:
+TVS can also be applied to training stage to purify supervision signal. Given input question $Q$, input video $V$, and ground truth answer $a$, we compute the likelihood during the TVS-guided training as:
 
 \vspace{-2em}
 
@@ -145,9 +145,9 @@ p\left( \mathbf{X}_\mathrm{A} \mid \mathbf{X}_\mathrm{V}, \mathbf{X}_\mathrm{Q} 
 $$ 
 % This one is too wide in two-coloum setting,
 
-$$ \mathbf{X}_\mathrm{A}, \mathbf{X}_\mathrm{Q}, \mathbf{X}_\mathrm{V} = f_t(a), f_t(q'), f_v(v')$$
+$$ \mathbf{X}_\mathrm{A}, \mathbf{X}_\mathrm{Q}, \mathbf{X}_\mathrm{V} = f_t(a), f_t(q), f_v(v)$$
 
-$$ V', q' = TVS(V, q) $$
+$$ v, q = TVS(V, Q) $$
 \end{small}
 
 
