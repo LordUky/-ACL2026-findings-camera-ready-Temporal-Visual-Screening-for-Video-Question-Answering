@@ -640,39 +640,88 @@ Temporal sentence grounding (TSG) aims to localize the video segment best matchi
 Another seemingly similar line of research lies in integrating grounding techniques into VideoQA pipelines \citep{nextgqa, cgbench}. Grounded VideoQA seeks to enhance model faithfulness by explicitly linking a model's textual output to ``visual cues'' or ``evidence'' within the video. This approach is effective at mitigating hallucinations for descriptive queries by enforcing \textit{perceptual} alignment. While effective for descriptive tasks, the approach suffers from a fundamental conceptual incongruity with the nature of complex video reasoning. The semantics of a query and its corresponding video segment are often holistically entangled; for example, a high-level question about intent, causality, procedure, or even a simple temporal relational reasoning does not map to an atomic piece of visual evidence but is inferred from a continuous temporal context. The attempt to impose a discrete justification framework onto this intertwined semantic space leads to an inherently brittle and ill-defined notion of a ``visual cue''. 
 
 TVS naturally sidesteps this ambiguity by fundamentally reframing the objective, turning from \textbf{\textit{``what to answer''}} to \textbf{\textit{``what to ask''}}. More fundamentally, TVS introduces a more principled paradigm that respects this intrinsic entanglement. Rather than seeking to atomize evidence for a given answer, TVS reformulates the task itself through a priori contextual simplification. It isolates the minimal, self-contained $(video, query)$ sub-problem through an \textbf{endomorphic transformation} that keeps with the original task space unchanged and preserves the necessary holistic context for reasoning. This approach is not merely a circumvention of the definitional challenge; it establishes a more fundamentally sound and cognitively aligned task. By first reducing the problem space to a manageable and semantically coherent unit—mirroring the human strategy of simplifying a problem before attempting to solve it—TVS offers a more robust foundation for complex video-language understanding.
-\section{Full Per-Source Caption Breakdown}
+\section{Cost Driver Details}
 \label{appendix:efficiency_full}
 
-For completeness, Table~\ref{tab:cost_full_breakdown} reports the full per-source caption decomposition for ReSimplifyIt, which is summarized only at a high level in Table~\ref{tab:cost_full} of the main paper. The columns are defined as follows:
+This appendix provides per-dataset cost-driver statistics for both TVS instantiations, complementing the headline CostRatio analysis of Section~\ref{sec:efficiency}. Table~\ref{tab:cost_drivers_simple_app} reports the high-level cost drivers (caption count, tool calls, LLM turns, output tokens) and screening effectiveness (DurAll, DurScrn, Screen\%) for ReSimplifyIt-simple. Table~\ref{tab:cost_drivers_full_app} reports the same high-level statistics for the full ReSimplifyIt. Table~\ref{tab:cost_full_breakdown} further decomposes the captions of the full ReSimplifyIt into passive (pre-loaded) versus active (tool-fetched) sources; column definitions follow the list below.
+
 \begin{itemize}[leftmargin=*,noitemsep,topsep=0pt]
     \item \textbf{Pasv}: passive captions per sample ($=\text{VaIn}+\text{LoIn}$), embedded in prompts without explicit tool calls.
     \item \textbf{VaIn}: Validator initial captions, uniformly sampled frames embedded in the Validator's prompt ($\sim$10 per trial).
     \item \textbf{LoIn}: Localize initial captions; each \texttt{localize()} call samples $k{=}10$ uniform frames for its sub-agent prompt.
     \item \textbf{Actv}: active captions per sample ($=\text{\#TotalCap}-\text{Pasv}$), fetched during tool execution via \texttt{scan}, \texttt{localize}, and \texttt{get\_image\_cap}.
-    \item \textbf{\#scan}, \textbf{\#localize}, \textbf{\#get\_cap}: the breakdown of VwTl into its three constituent tool types.
+    \item \textbf{V$\rightarrow$Vw}: Viewer sessions spawned per sample (number of times the Validator invokes the Viewer as a tool).
+    \item \textbf{\#scan}, \textbf{\#localize}, \textbf{\#get\_cap}: the breakdown of total Viewer tool calls (VwTl) into its three constituent tool types.
 \end{itemize}
 
-\begin{table*}[ht]
+\begin{table}[ht]
   \centering
   \small
-  \resizebox{\textwidth}{!}{%
-  \begin{tabular}{l|ccccc|ccc}
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{l|cccc|ccc}
     \toprule
-    \textbf{Dataset} & \textbf{Pasv} & \textbf{VaIn} & \textbf{LoIn} & \textbf{Actv} & \textbf{V$\rightarrow$Vw} & \textbf{\#scan} & \textbf{\#localize} & \textbf{\#get\_cap} \\
+    \textbf{Dataset} & \textbf{\#TotalCap} & \textbf{\#Tool} & \textbf{\#LLM} & \textbf{\#OutTok} & \textbf{DurAll} & \textbf{DurScrn} & \textbf{Screen\%} \\
     \midrule
-    ActivityNet-QA  & 34.0 & 17.4 & 16.6 & 33.5 & 2.7 & 2.6 & 1.7 & 2.4 \\
-    YouCookII-TVS   & 38.2 & 22.8 & 15.4 & 35.7 & 2.4 & 3.0 & 1.5 & 1.1 \\
-    NExT-OE         & 5.3  & 2.7  & 2.6  & 13.0 & 0.4 & 0.4 & 0.3 & 0.4 \\
-    EgoSchema       & 24.5 & 13.6 & 10.8 & 26.1 & 2.3 & 2.5 & 1.1 & 0.8 \\
-    LVBench         & 48.9 & 17.5 & 31.3 & 94.9 & 2.6 & 4.8 & 3.1 & 3.0 \\
-    MLVU            & 22.1 & 9.8  & 12.3 & 42.4 & 1.7 & 2.1 & 1.2 & 1.6 \\
-    Video-MME       & 32.8 & 15.0 & 17.8 & 43.4 & 2.4 & 3.3 & 1.8 & 1.5 \\
+    ActivityNet-QA  & 21.4 & 1.9 & 3.2 & 341  & 9.8\%  & 9.0\%  & 99.2\% \\
+    YouCookII-TVS   & 21.9 & 1.9 & 3.3 & 366  & 6.4\%  & 6.4\%  & 100.0\% \\
+    NExT-OE         & 23.4 & 3.9 & 5.0 & 433  & 20.2\% & 16.7\% & 95.7\% \\
+    EgoSchema       & 22.1 & 2.1 & 3.5 & 446  & 26.0\% & 26.0\% & 100.0\% \\
+    LVBench         & 27.0 & 7.0 & 9.6 & 1482 & 2.2\%  & 1.9\%  & 99.7\% \\
+    MLVU            & 24.9 & 4.9 & 6.9 & 1122 & 12.2\% & 7.0\%  & 94.4\% \\
+    Video-MME       & 23.9 & 3.9 & 5.7 & 806  & 8.3\%  & 8.0\%  & 99.7\% \\
     \bottomrule
   \end{tabular}%
   }
-  \caption{Full per-source caption breakdown for ReSimplifyIt. Values are averaged per sample. Passive captions are those embedded in agent prompts at initialization; active captions are fetched during tool execution. VwTl ($=\text{\#scan}+\text{\#localize}+\text{\#get\_cap}$) is reported in Table~\ref{tab:cost_full}.}
+  \caption{Per-dataset cost drivers and screening effectiveness for ReSimplifyIt-simple.}
+  \label{tab:cost_drivers_simple_app}
+\end{table}
+
+\begin{table}[ht]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{l|ccc|ccc}
+    \toprule
+    \textbf{Dataset} & \textbf{\#TotalCap} & \textbf{V$\rightarrow$Vw} & \textbf{VwTl} & \textbf{DurAll} & \textbf{DurScrn} & \textbf{Screen\%} \\
+    \midrule
+    ActivityNet-QA  & 67.5 & 2.7 & 6.8  & 51.7\% & 16.2\% & 57.6\% \\
+    YouCookII-TVS   & 73.9 & 2.4 & 5.8  & 6.8\%  & 6.8\%  & 97.9\% \\
+    NExT-OE         & 18.3 & 0.4 & 1.3  & 86.9\% & 32.8\% & 19.5\% \\
+    EgoSchema       & 50.6 & 2.3 & 4.5  & 75.0\% & 25.6\% & 33.6\% \\
+    LVBench         & 83.8 & 2.6 & 11.3 & 57.5\% & 4.8\%  & 44.6\% \\
+    MLVU            & 64.5 & 1.7 & 5.2  & 81.4\% & 7.2\%  & 20.1\% \\
+    Video-MME       & 76.2 & 2.4 & 6.7  & 64.0\% & 10.4\% & 40.1\% \\
+    \bottomrule
+  \end{tabular}%
+  }
+  \caption{Per-dataset cost drivers and screening effectiveness for the full ReSimplifyIt. VwTl denotes total Viewer tool calls per sample.}
+  \label{tab:cost_drivers_full_app}
+\end{table}
+
+\begin{table}[ht]
+  \centering
+  \small
+  \setlength{\tabcolsep}{4pt}
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{l|cccc|ccc}
+    \toprule
+    \textbf{Dataset} & \textbf{Pasv} & \textbf{VaIn} & \textbf{LoIn} & \textbf{Actv} & \textbf{\#scan} & \textbf{\#loc} & \textbf{\#get\_cap} \\
+    \midrule
+    ActivityNet-QA  & 34.0 & 17.4 & 16.6 & 33.5 & 2.6 & 1.7 & 2.4 \\
+    YouCookII-TVS   & 38.2 & 22.8 & 15.4 & 35.7 & 3.0 & 1.5 & 1.1 \\
+    NExT-OE         & 5.3  & 2.7  & 2.6  & 13.0 & 0.4 & 0.3 & 0.4 \\
+    EgoSchema       & 24.5 & 13.6 & 10.8 & 26.1 & 2.5 & 1.1 & 0.8 \\
+    LVBench         & 48.9 & 17.5 & 31.3 & 94.9 & 4.8 & 3.1 & 3.0 \\
+    MLVU            & 22.1 & 9.8  & 12.3 & 42.4 & 2.1 & 1.2 & 1.6 \\
+    Video-MME       & 32.8 & 15.0 & 17.8 & 43.4 & 3.3 & 1.8 & 1.5 \\
+    \bottomrule
+  \end{tabular}%
+  }
+  \caption{Full per-source caption breakdown for ReSimplifyIt. \#loc abbreviates \#localize. Passive captions are pre-loaded into agent prompts; active captions are fetched during tool execution.}
   \label{tab:cost_full_breakdown}
-\end{table*}
+\end{table}
 
 
 \section{Additional Discussion}
