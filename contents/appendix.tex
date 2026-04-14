@@ -1,0 +1,639 @@
+\appendix
+
+\label{sec:appendix}
+
+\begin{table*}[ht]
+  \centering
+
+  \begin{subtable}{\textwidth}
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{c|cccc|cccc|cccc|cccc}
+      \toprule
+      \textbf{\multirow{2}{*}{Method}}  &\multicolumn{4}{c}{Temporal Relational }  & \multicolumn{4}{c}{Timepoint Indexed} & \multicolumn{4}{c}{Multifaceted Integrative}  & \multicolumn{4}{c}{\textbf{Average}}\\
+       & mIoU & Pre. & Cov. & F1 & mIoU & Pre. & Cov. & F1 & mIoU & Pre. & Cov. & F1 & mIoU & Pre. & Cov. & F1 \\
+       \midrule
+       VTG-GPT \citep{vtggpt} & 0.17 & 0.26 & 0.32 & 0.29 & 0.15 & 0.22 & 0.30 & 0.26 & 0.16 & 0.23 & 0.31 & 0.24 & 0.16 & 0.27 & 0.31 & 0.27 \\
+       \citet{tfvtg} & 0.11 & 0.18 & 0.21 & 0.19 & 0.04 & 0.08 & 0.09 & 0.08 & 0.06 & 0.10 & 0.11 & 0.10 & 0.07 & 0.12 & 0.13 & 0.12 \\
+       	\textbf{ReSimplifyIt} (Ours) & \textbf{0.23} & \textbf{0.36} & \textbf{0.39} & \textbf{0.37} & \textbf{0.98} & \textbf{1.0} & \textbf{0.98} & \textbf{0.99} & \textbf{0.47} & \textbf{0.60} & \textbf{0.69} & \textbf{0.64} & \textbf{0.56} & \textbf{0.65} & \textbf{0.69} & \textbf{0.67}\\
+      \bottomrule
+    \end{tabular}
+    }
+    \caption{more results on stage 1 video output}
+    \label{tab:tvs_main_more_vid}
+  \end{subtable}
+
+
+  \caption{More results on Stage-1 evaluation on YouCookII-TVS dataset. 'Pre.' and 'Cov.' stands for 'precision' and 'coverage'.}
+  \label{tab:stage1_eval_appendix}
+\end{table*}
+
+\begin{figure*}[t]
+  \includegraphics[width=\textwidth]{figs/tvs_task_figure_v5.png}
+  \caption{More examples of the TVS task.\vspace{-10pt}}
+  \label{fig:tvs_task_figure}
+\end{figure*}
+
+\begin{figure*}[htbp] 
+    \centering
+    \begin{minipage}{\textwidth} 
+\begin{algorithm}[H] 
+    \caption{\emph{ISODATA Clustering}}
+    \begin{algorithmic}[1]
+        \Require Data matrix $\mathbf{X} \in \mathbb{R}^{n \times d}$, Candidate frames $\mathbf{F} \in \mathbb{R}^{n \times c \times w \times h}$, frame feature extractor $Enc()$, initial cluster count $k$, max iterations $T$, minimum intra-cluster similarity $\theta_{split}$, maximum inter-cluster similarity $\theta_{merge}$, max clusters $k_{max}$, min clusters $k_{min}$, max center shift $\delta_{max}$, min elements per cluster $n_{min}$
+        \Ensure Cluster assignments $\mathbf{C}$, Final cluster centers $\mathbf{M}$
+
+        \State $\mathbf{X} \gets \text{Enc}(\mathbf{F})$
+        \State $\mathbf{X}_{norm} \gets \text{normalize}(\mathbf{X}, \ell_2)$
+        \State $\mathbf{M} \gets \text{random\_sample}(\mathbf{X}, k)$
+        \State $t \gets 0$
+        \Repeat
+            \State Compute cosine similarity matrix $\mathbf{S} = \mathbf{X}_{norm} \mathbf{M}_{norm}^T$
+            \State $\mathbf{C} \gets \arg\max(\mathbf{S}, \text{axis}=1)$ \Comment{Assign points to nearest clusters}
+            
+            \For{each cluster $i$}
+                \State Update center: $\mathbf{m}_i \gets \text{mean}(\mathbf{X}[\mathbf{C}==i])$
+            \EndFor
+            
+            \If{any cluster size $< n_{min}$}
+                \State Merge smallest cluster with nearest neighbor \Comment{Minimum elements enforcement}
+            \EndIf
+            
+            \For{each cluster $i$}
+                \If{intra-cluster similarity$(\mathbf{X}[\mathbf{C}==i], \mathbf{m}_i) < \theta_{split}$ \textbf{and} $k < k_{max}$}
+                    \State Split cluster $i$ into two new clusters \Comment{Splitting phase}
+                    \State $k \gets k + 1$
+                \EndIf
+            \EndFor
+            
+            \For{all cluster pairs $(i,j)$}
+                \If{inter-cluster similarity$(\mathbf{m}_i, \mathbf{m}_j) > \theta_{merge}$ \textbf{and} $k > k_{min}$}
+                    \State Merge clusters $i$ and $j$ \Comment{Merging phase}
+                    \State $k \gets k - 1$
+                \EndIf
+            \EndFor
+            
+            \State Compute center shifts $\Delta \mathbf{M} = \|\mathbf{M}_{new} - \mathbf{M}_{old}\|$
+            \State $t \gets t + 1$
+        \Until{$t \geq T$ \textbf{or} $\max(\Delta \mathbf{M}) < \delta_{max}$}
+        
+        \State \Return $\mathbf{C}, \mathbf{M}$
+    \end{algorithmic}
+\label{alg_isodata}
+\end{algorithm}
+    \end{minipage}
+\end{figure*}
+
+
+\begin{figure*}[htbp] 
+    
+    \centering
+    \begin{minipage}{\textwidth} 
+        \begin{algorithm}[H] 
+            \caption{\emph{ReSimplifyIt}}
+            \label{alg_ReSimplify}
+            \begin{algorithmic}[1]
+                \Require Video $v$, question $q$
+                \Ensure Screened video $V'$, screened question $q'$
+
+                \State $V\_copy, q\_copy \gets V, q$
+                \State $success\_history, failure\_history \gets \texttt{SuccessHistory()}, \texttt{FailureHistory()}$
+                \While{true} 
+                    \State $launcher, validator, viewer \gets \texttt{Launcher()}, \texttt{Validator()}, \texttt{Viewer()}$
+                    \State $decision, q', trimming\_instruction \gets \texttt{launcher}(q\_copy, success\_history, failure\_history)$
+                    \If{$decision=="proceed"$}
+                        \State $judgement, request, result, reason \gets \texttt{validator}(q\_copy, q', trimming\_instruction)$
+                        \While{$judgement=="view"$}
+                            \State $response \gets \texttt{viewer}(V', request)$
+                            \State $\texttt{validator.read\_response}(response)$
+                        \EndWhile
+                        \If{$judgement=="succeeded"$}
+                            \State $V' \gets result$
+                            \State $success\_history.append([q\_copy, q', trimming\_instruction])$
+                            \State $failure\_history.empty()$
+                            \State $V\_copy, q\_copy \gets V', q'$
+                        \Else
+                            \State $failure\_history.append([q\_copy, q', trimming\_instruction])$
+                        \EndIf
+                    \Else
+                        \State \Return $V\_copy, q\_copy$
+                    \EndIf
+                \EndWhile
+            \end{algorithmic}
+        \label{alg_tvs}
+        \end{algorithm}
+        
+    \end{minipage}
+\end{figure*}
+
+
+\begin{table*}
+  \centering
+  \resizebox{0.7\linewidth}{!}{\begin{tabular}{c|cc}
+    \toprule
+    \textbf{\multirow{2}{*}{Method}} & \multicolumn{2}{c}{ActivityNetQA} \\ 
+    & w/tvs & w/o \\ 
+    \midrule
+    Video-ChatGPT \cite{maaz-etal-2024-video} & 58.5 & 50.5\\ 
+    Video-LLaVA \cite{lin2023video} & 61.2 & 52.1 \\ 
+    ChatUniVi \cite{chatunivi} & 63.2 & 52.0 \\
+    LLaVA-NExT \cite{liu2024llavanext} & 67.8 & 62.5 \\ 
+    VideoAgent \cite{VideoAgent} & 61.5 & 60.2 \\ 
+    VideoTree \cite{wang2024videotreeadaptivetreebasedvideo} & 59.0 & 63.6 \\ 
+    \bottomrule
+  \end{tabular}}
+  
+  \resizebox{\linewidth}{!}{\begin{tabular}{c|cccccccc}
+    \toprule
+    \textbf{\multirow{3}{*}{Method}} & \multicolumn{8}{c}{YouCookII-TVS} \\ 
+    & \multicolumn{2}{c}{TRR.} & \multicolumn{2}{c}{TIR.} & \multicolumn{2}{c}{MIR.} & \multicolumn{2}{c}{Avg.} \\ 
+    & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o \\
+    \midrule 
+    Video-ChatGPT \cite{maaz-etal-2024-video} & 31.7 & 30.5 & 45.2 & 26.5 & 39.8 & 29.73 & 38.9 & 28.91 \\ 
+    Video-LLaVA \cite{lin2023video} & 39.3 & 37.4 & 46.8 & 28.2 & 43.5 & 31.6 & 43.2 & 32.4 \\ 
+    ChatUniVi \cite{chatunivi} & 54.4 & 39.8 & 57.4 & 52.8 & 58.7 & 49.6 & 56.5 & 47.4 \\
+    LLaVA-NExT \cite{liu2024llavanext} & 46.5 & 44.1 & 65.9 & 33.4 & 62.2 & 38.3 & 58.2 & 48.6 \\ 
+    VideoAgent \cite{VideoAgent} & 30.2 & 48.7 & 46.1 & 55.2 & 38.9 & 57.8 & 38.4 & 53.9 \\ 
+    VideoTree \cite{wang2024videotreeadaptivetreebasedvideo} & 59.3 & 64.0 & 59.2 & 72.2 & 52.8 & 72.0 & 57.1 & 69.4  \\ 
+    \bottomrule
+  \end{tabular}}
+  
+  \resizebox{\linewidth}{!}{\begin{tabular}{c|cccccccc}
+    \toprule
+    \textbf{\multirow{3}{*}{Method}} & \multicolumn{8}{c}{NExT-QA} \\ 
+    & \multicolumn{2}{c}{Tem.} & \multicolumn{2}{c}{Cau.} & \multicolumn{2}{c}{Des.} & \multicolumn{2}{c}{Avg.} \\ 
+    & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o \\
+    \midrule
+    Video-ChatGPT \cite{maaz-etal-2024-video} & 45.5 & 23.7 & 45.5 & 56.7 & 45.6 & 43.0 & 45.5 & 44.2 \\
+    Video-LLaVA \cite{lin2023video} & 42.8 & 42.8 & 50.4 & 48.9 & 55.1 & 44.5 & 52.2 & 46.3 \\ 
+    ChatUniVi \cite{chatunivi} - & - & - & - & - & - & - & 5 & 28 \\
+    LLaVA-NExT \cite{liu2024llavanext} & 57.5 & 52.3 & 62.0 & 59.0 & 61.4 & 56.5 & 60.5 & 56.6 \\
+    VideoAgent \cite{VideoAgent} & 49.2 & 47.3 & 43.6 & 41.9 & 51.7 & 51.1 & 47.0 & 45.0\\
+    VideoTree \cite{wang2024videotreeadaptivetreebasedvideo} & 62.4 & 59.9 & 57.7 & 66.1 & 66.8 & 72.3 & 60.0 & 65.2 \\ 
+    \bottomrule
+  \end{tabular}}
+  
+  \resizebox{\linewidth}{!}{\begin{tabular}{c|cccccccc}
+    \toprule
+    \textbf{\multirow{3}{*}{Method}} & \multicolumn{8}{c}{NExT-OE} \\ 
+    & \multicolumn{2}{c}{Tem.} & \multicolumn{2}{c}{Des.} & \multicolumn{2}{c}{Cau.} & \multicolumn{2}{c}{Avg.} \\ 
+    & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o \\ 
+    \midrule
+    Video-ChatGPT \cite{maaz-etal-2024-video} & 49.6 & 40.8 & 51.2 & 43.2 & 46.9 & 38.6 & 49.8 & 41.5 \\ 
+    Video-LLaVA \cite{lin2023video} & 37.5 & 37.5 & 53.2 & 46.7 & 47.6 & 43.4 & 48.0 & 43.3 \\ 
+    ChatUniVi \cite{chatunivi} & 30.8 & 30.8 & 36.9 & 23.1 & 34.0 & 26.4 & 34.5 & 25.9 \\ 
+    LLaVA-NExT \cite{liu2024llavanext} & 41.4 & 39.11 & 59.7 & 46.0 & 50.1 & 44.6 & 52.3 & 43.7 \\ 
+    VideoAgent \cite{VideoAgent} & 44.1 & 53.4 & 48.8 & 46.0 & 50.4 & 52.6 & 47.8 & 49.6\\ 
+    VideoTree \cite{wang2024videotreeadaptivetreebasedvideo} & 52.1 & 61.1 & 58.0 & 60.7 & 64.4 & 65.6 & 57.7 & 61.9 \\ 
+    \bottomrule
+  \end{tabular}}
+  \caption{Evaluation results of TVS-guided inference on four benchmark: ActivityNetQA, YouCookII-TVS, NExT-QA, and NExT-OE, with the sub-categories presented in each benchmark. }
+  \label{stage2_eval_appendix}
+\end{table*}
+
+
+\section{Viewer Implementation Details}
+\label{appendix_viewer}
+
+\paragraph{Keyframe Extraction and Captioning.} 
+We utilize a two-stage keyframe extraction process combined with frame captioning. In the first stage, we implement the MPEG-4 compression technique \citep{mpeg} to extract all I-frames as candidate keyframes. I-frames typically contain rich visual content and clarity, or represent scene transitions.
+
+In the second stage, we apply a modified Isodata clustering algorithm to the visual features of these I-frames, selecting cluster centers as final keyframes. This algorithm adaptively determines the number of clusters, unlike KNN-based clustering \citep{wang2024videotreeadaptivetreebasedvideo, clustering_knn}, which requires a pre-defined number of clusters or external supervision. Our approach ensures generalizability and robustness for diverse video types.
+
+After clustering, we utilize an off-the-shelf vision-language model (VLM) to generate frame captions for the selected keyframes. The overall process is denoted by:
+\begin{center}
+$C = prep(start, end)$
+\end{center}
+where $C$ is the set of frame captions between the given timestamps.
+
+\paragraph{Scanning.} 
+Given a timestamp range $(start, end)$, the Viewer calls an external LLM with $C$ to produce an overview caption. It may query additional frames via a captioning tool to refine its summary, mimicking how users drag to specific timestamps for clarification. The process is:
+\begin{center}
+$Cap = Scanner(prep(start, end), t)$
+\end{center}
+where $t$ is the task prompt.
+
+\paragraph{Localizing.} 
+To identify the timestamp range matching a textual description, we propose a lightweight three-stage search process:
+
+\textbf{Stage 1:}  We feed an external LLM the set of keyframe captions to let it acquire an overall capture of the video content. At the same time, we instruct the LLM to output five most possible timestamps that depicts the texture query. The LLM is able to call frame caption tool to acquire extra captions at arbitrary timestamps, before it's confident enough to output the answer. Formally:
+\begin{center}
+$P = stage_1(prep(0, d), e, t)$
+\end{center}
+where $e$ are extra captions and $t$ is the prompt. $P$ gives the resulting list of five timestamps which depicts the language query the best.
+
+\textbf{Stage 2:} We initialize the conversation and feed it the frame captions at these five timestamps, while instructing it to pick the one timestamp that best depicts the language query, out of the five candidates. Also, the LLM is able to call frame caption tool to acquire extra captions at arbitrary timestamps before it's confident enough to output the answer. 
+\begin{center}
+$t_{best} = stage_2(P, e, t)$
+\end{center}
+where $P$ is the output of the previous step, and $t$ is the task prompt.
+
+\textbf{Stage 3:} Last, we initialize the conversation again, and instruct the external LLM to expand the single timestamp $t_{best}$ from the last step to a timestamp range. The frame caption at $t_{best}$ is provided, and the LLM is still able to acquire more captions by tool calling to confirm the boundary. Considering the difficulty in dealing with dynamic transitions of events, as explored by some previous work \citep{zheng2024trainingfreevideotemporalgrounding}, we simply apply a hard value of 5 seconds on the output. Formally:
+\begin{align*}
+(t_{start}', t_{end}') &= stage_3(t_{best}, e, t) \\
+(t_{start}, t_{end}) &= (t_{start}' - 5, t_{end}' + 5)
+\end{align*}
+
+This three-stage process balances precision and efficiency by minimizing frame access while ensuring robust temporal grounding. For visual clarity of the Isodata clustering, refer to Algorithm~\ref{alg_isodata} for details.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Details on the YouCookII-TVS benchmark}
+\label{yc2tvs_appendix}
+
+We constructed a synthetic question-answering dataset named \textbf{YouCookII-TVS}, based on the YouCookII dataset, to support fine-grained temporal and semantic understanding of cooking videos.
+
+\subsection{Source Data Preparation}
+
+The original YouCookII dataset \citep{ZhXuCoAAAI18} contains temporally annotated instructional videos. Each annotation includes a segment $[s_i, e_i]$ representing start and end times (in seconds), along with a natural language description of the cooking step.
+% We use the training split of YouCookII videos as our base data.
+
+% To ensure video consistency and avoid duplications, we verified that each video clip name is unique across folders:
+% \[
+% \texttt{len(all\_video\_names)} = \texttt{len(set(all\_video\_names))}
+% \]
+% Only when this condition holds do we proceed with processing.
+
+To ensure video consistency and avoid duplications, we have verified that each video clip name is unique across the dataset source.
+
+\subsection{Annotation Grouping via Temporal Connectivity}
+
+We define a temporal connectivity criterion to group sequential cooking steps into higher-level event triplets. Given two segments $[s_1, e_1]$ and $[s_2, e_2]$, we define their overlap ratio as:
+\[
+\text{overlap\_ratio} = \frac{|\min(e_1, e_2) - \max(s_1, s_2)|}{\max(e_1, e_2) - \min(s_1, s_2)}
+\]
+Two segments are considered \emph{connectable} if:
+\[
+s_2 > s_1,\quad e_2 > e_1,\quad \text{and}\quad \text{overlap\_ratio} \leq \theta
+\]
+We set $\theta = 0.1$ in our experiments. Using this rule, we perform a greedy grouping of annotations into connected segments, and extract all valid length-3 subsequences (triplets) from each group.
+
+\subsection{Triplet-Based Question Generation}
+
+Each triplet $T = \{t_1, t_2, t_3\}$ consists of three temporally ordered steps. For each $T$, we generate nine different types of question-answer pairs by instantiating predefined templates. The question types are categorized into three groups:
+
+\paragraph{Temporal Relational Reasoning (TRR)}
+\begin{itemize}
+    \item \texttt{trr1}: What is the cooking step after of $[description]$?
+    \item \texttt{trr2}: What is the cooking step before $[description]$?
+    \item \texttt{trr3}: What is the cooking step between $[description]$ and $[description]$?
+\end{itemize}
+
+\paragraph{Timepoint Indexed Reasoning (TIR)}
+\begin{itemize}
+    \item \texttt{tir1}: What is the step between timestamps $s_2$ and $e_2$?
+    \item \texttt{tir2}: What is the step between frame indices $f_{s_2} = s_2 \cdot r$ and $f_{e_2} = e_2 \cdot r$?
+    \item \texttt{tir3}: What step appears within $f_{d} = (e_2 - s_2) \cdot r$ frames after $s_2$ seconds?
+\end{itemize}
+Here, $r$ denotes the video frame rate.
+
+\paragraph{Multifaceted Integrative Reasoning (MIR)}
+\begin{itemize}
+    \item \texttt{mir1}: What is the first step after timestamp $s_2$?
+    \item \texttt{mir2}: What is the last step before timestamp $e_2$?
+    \item \texttt{mir3}: Within $s_1$ and $e_3$, what is (are) the cooking step(s) apart from $[description]$ and $[description]$?
+\end{itemize}
+
+Template instantiation is performed by replacing placeholders with actual sentences and timestamps (framestamps) from the triplet.
+
+\subsection{Data Structuring and Metadata}
+
+Each generated data point is stored with the following fields:
+\begin{itemize}
+    \item \texttt{vid\_name}, \texttt{vid\_fname}: Video ID and filename.
+    \item \texttt{vid\_duration}, \texttt{vid\_frame\_rate}: Metadata from video parsing.
+    \item \texttt{type}: One of the nine QA types.
+    \item \texttt{question}: Instantiated natural language query.
+    \item \texttt{answer}: Corresponding ground-truth step description, serving as the ground-truth label for the VideoQA task.
+    \item \texttt{gt\_timestamp}: Temporal segment(s) serving as the ground-truth label for our TVS task on video trimming.
+    \item \texttt{gt\_rewritten\_query}: Natural language query serving as the ground-truth label for our TVS task on query re-writing.
+    
+\end{itemize}
+
+We generated a total of $N = 2754$ QA samples, covering all types evenly.
+
+\subsection{Dataset Splitting}
+
+To support evaluation, we partition the dataset into training, validation, and test splits. For each question type, we allocated:
+\[
+\text{train: } 1926,\quad \text{val: } 270,\quad \text{test: } 558
+\]
+This roughly follows 7:1:2.
+
+\begin{figure*}[t]
+  \includegraphics[width=\textwidth]{figs/yc2tvs_statistics_v2.png}  
+  \caption{YouCookII-TVS statistics. \vspace{-10pt}}
+  \label{fig:yc2tvs_statistics}
+\end{figure*}
+
+More details about the dataset statistics can be found in Figure \ref{fig:yc2tvs_statistics}.
+
+\section{Ablation Study}
+\label{ablations}
+
+\begin{table*}[ht]
+  \centering
+
+  \begin{subtable}{\textwidth}
+    \centering
+    \resizebox{\textwidth}{!}{%
+      \begin{tabular}{c|cc|cc|cc|cc}
+        \toprule
+        \textbf{\multirow{2}{*}{Method}}  & \multicolumn{2}{c}{Temporal Relational} & \multicolumn{2}{c}{Timepoint Indexed} & \multicolumn{2}{c}{Multifaceted Integrative} & \multicolumn{2}{c}{\textbf{Average}} \\
+         & mIoU & F1 & mIoU & F1 & mIoU & F1 & mIoU & F1 \\
+        \midrule
+        ReSimplifyIt (Ours) & \underline{0.23} & \textbf{0.37} & \textbf{0.98} & \textbf{0.99} & \textbf{0.47} & \textbf{0.64} & \textbf{0.56} & \textbf{0.67} \\
+        ReSimplifyIt-simple (Ours) & \textbf{0.24} & \textbf{0.37} & \textbf{0.98} & \textbf{0.99} & \underline{0.42} & \underline{0.57} & \underline{0.55} & \underline{0.64} \\
+        ReSimplifyIt-blind (Ours) & 0.12 & 0.20 & 0.97 & \textbf{0.99} & 0.38 & 0.55 & 0.49 & 0.58 \\
+        \bottomrule
+      \end{tabular}
+    }
+    \caption{Results on video output.}
+    \label{tab:tvs_main_reduced_vid_ablation}
+  \end{subtable}
+
+  % Subtable: Query Rewriting (Group 2: ReSimplifyIt and Variants)
+  \begin{subtable}{\textwidth}
+    \centering
+    \resizebox{\textwidth}{!}{%
+      \begin{tabular}{ccccc}
+        \toprule
+        \textbf{Method} & Temporal Relational & Timepoint Indexed & Multifaceted Integrative & \textbf{Average} \\
+        \midrule
+        ReSimplifyIt (Ours) & 66.8 & 78.5 & 72.8 & \textbf{72.7} \\
+        ReSimplifyIt-simple (Ours) & 66.2 & 81.9 & 68.1 & 72.0 \\
+        ReSimplifyIt-blind (Ours) & 65.0 & 80.5 & 70.7 & \underline{72.1} \\
+        \bottomrule
+      \end{tabular}
+    }
+    \caption{Results on query rewriting.}
+    \label{tab:tvs_main_reduced_text_ablation}
+  \end{subtable}
+
+  \caption{Ablation studies on our ReSimplifyIt framework. ReSimplifyIt-simple and ReSimplifyIt-blind represent ablations on modular design and feedback from video access, respectively.}
+  \label{tab:stage1_eval_ablation}
+\end{table*}
+
+\begin{figure*}[t]
+  \includegraphics[width=\textwidth]{figs/ReSimplifyIt-simple.png}
+  \caption{Workflow of \textit{ReSimplifyIt-simple} (left) and \textit{ReSimplifyIt-blind} (right).}
+  \label{fig:workflow_figure_ablations}
+\end{figure*}
+
+\subsection{Experiment Settings}
+
+We first ablate the modular design—responsible for facilitating structured reasoning—by proposing the \textbf{ReSimplifyIt-simple} variant. In this setting, all underlying interfaces for handling textual and visual inputs, such as ISODATA-clustering (Algorithm~\ref{alg_isodata}) and frame-caption querying, are preserved. However, the entire reasoning pipeline is collapsed into a single, universal agent. Specifically, we initialize an external agentic LLM with task descriptions and operational instructions, and expose the aforementioned interfaces either through conversational context or tool invocation. This unified agent is then responsible for all reasoning procedures—functionally covering the roles of the Launcher, Validator, and Viewer modules, as well as memory tracking—in the original ReSimplifyIt framework, and ultimately produces the final output.
+
+Then, we further ablate the video access completely, i.e. No access to the video content is provided throughout the \textit{entire} reasoning process of the external agent. As the multi-turn interaction (feedback) are all essentially from the reference to video information to refine text input, disabling video access also renders multi-turn interactions unnecessary. To reflect this, we introduce the \textbf{ReSimplifyIt-blind} variant, in which a tool-calling LLM generates a rewritten query and a fixed sequence of tool invocations within a single-turn conversation. This sequence is subsequently executed by a separate executor module to produce the video output.
+
+Refer to Figure \ref{fig:workflow_figure_ablations} for an illustrations of these frameworks.
+
+\subsection{Evaluation Results}
+
+Evaluation results are presented in Table~\ref{tab:stage1_eval_ablation}. Although the removal of modular design yields comparable video outputs, the modular architecture still demonstrates advantages—particularly on the \textit{Multifaceted Integrative} subset, which involves more complex multi-hop reasoning, demonstrating the effectiveness of modular design and structured reasoning in more complex and intricate reasoning scenario. In comparison, the ablation of video access brings notable performance drop, underscoring the critical role of cooperative, feedback-driven multi-turn interaction. This aligns with the interdependency of the vision and text modality, which lies at the core of our TVS task formulation, reflecting the essence of the task initiative.
+
+\subsection{Full list of tools for ReSimplifyIt-blind framework}
+\begin{lstlisting}
+1. get_duration():
+   Return the duration of the video as a floating point value.
+
+2. get_resolution():
+   Return the resolution of the video, as a tuple.
+
+3. get_total_frame_num():
+   Return total number of the frames of the video, as an integer.
+
+4. grounding_select(obj_name, concerned_indices_input):
+   Return, in the form of a list of integers, the indices of all frames
+   containing the object given by obj_name, after taking the intersection
+   of indices provided by concerned_indices_input. If None is passed,
+   selects all frames.
+
+5. indices_list_intersect(list1, list2):
+   Return the intersection of two lists of indices.
+
+6. indices_list_union(list1, list2):
+   Return the union of two lists of indices.
+
+7. indices_concat_and_fill(list1, list2):
+   Return the sorted union of list1 and list2, then fill in missing
+   values to make the sequence continuous.
+
+8. indices_concat(list1, list2):
+   Return the concatenation of the two lists.
+
+9. timestamp_to_single_index(timestamp):
+   Return the frame index corresponding to the given timestamp (in seconds).
+
+10. single_timestamp_to_index_range(timestamp):
+    Return indices of 60 consecutive frames centered at the timestamp.
+
+11. range_timestamp_to_index_range(start, end):
+    Return all frame indices between the start and end timestamps.
+\end{lstlisting}
+
+\section{Implementation details of ReSimplifyIt framework}
+\label{appendix:imp}
+The Launcher module is based on single-turn conversation with GPT-4o. The Validator and Viewer module, including the scanner and localizer, are primarily based on multi-turn conversation with GPT-4o. For ISODATA frame clustering, we use CLIP \citep{clip} to obtain the visual features of the I-frames. We adopt the off-the-shelf LLaVA-1.5 \citep{Liu_2024_CVPR} for frame captioning. 
+
+\section{Prompts}
+\label{prompts}
+
+\subsection{Prompt used for evaluation of query rewriting of TVS}
+
+\begin{lstlisting}
+You are a helpful assistant to evaluate the quality of an output of a special type of sentence compression, which sentence is in the form of a question.
+
+You will be given an output of such compression process and the ground truth answer, and the original input question sentence before the compression. Please evaluate the output based on the following three criterias:
+
+    1. Relevance: to minimize unwanted information
+    - in this criteria, a candidate output gets full mark if it doesn't contain any information (phrases, concepts, etc.) out of the scope of the original input question.
+    - the more information it contains that is not mentioned in the original input question, the more marks are deducted.
+
+    2. Simplicity: to minimize tangential information
+    - in this criteria, a candidate output gets full mark if doesn't contain any information (phrases, concepts, etc.) that is included in the original input question but not included in the ground truth compressed question. In other words, whether the question sentence is fully compressed.
+    - the more information it contains that is included in the original input question but not included in the ground truth question, the more marks will be deducted.
+
+    3. Completeness: to minimize over-compression
+    - in this criteria, a candidate output gets full mark if it contains all information included in the ground truth compressed question. 
+    - the more information contained in the ground truth output question is found missing in the output compressed question, the more marks will be deducted. 
+
+    Here is the original input question: [original_question_flag], and
+    here is the ground truth compressed question: [ground_truth_screened_question_flag], and
+    here is the output compressed question: [output_screened_question_flag].
+
+    Please rate the output compressed question on a scale from 0 to 100, with 0 being the worst and 100 being the best (full mark). 
+    Now, rate the quality of the output compressed question based on all the information above. 
+    Return your answer in this json format: {"score": [your score, from 0 to 100]}.
+\end{lstlisting}
+
+\subsection{Prompts used for ReSimplifyIt framework}
+Prompt for the Launcher module:
+\begin{lstlisting}
+Given a video question answering case, i.e. a video, a question, and an answer, sometimes it is possible to cut the video by only keeping a sub-clip or several sub-clips (concatenate if so) to be the video output and simultaneously modify the text question to be the paired text output while keeping the answer consistent and unchanged, so that the answer is still completely compatible to the modified question and the obtained video clip. 
+We define this action as "screening". By doing screening, the video becomes shorter, and therefore introduces lower cost to the downstream video question answering model. When modifying the question, note that the downstream video question answering model will only be seeing the sub-clip and think that the shown sub-clip is the whole video, so make sure the modified question is perfectly paired and aligned with and adapted to the modification. 
+
+[In context examples flag 1]
+
+Sometimes, such screening can be repeatedly applied sequentially by several rounds, where the input in each round is the output video clip and the output modified question of its preceeding round. As mentioned, the answer consistency should be always ensured throughout the whole process, and is always completely compatible to the resulting video clip and modified question of every round. If succeeded, each round would make the video shorter and making the situation closer to the optimal case.
+
+[In context examples flag 2]
+
+
+Your duty is to help complete the screening. Due to some limit, you are only provided with the text question but not the video input.
+Your task is to initiate an immediate plan for the screening operation, including a natural language instruction telling which video clip(s) to keep (similar to examples above) and the paired modified text question. If you think the screening may compose more than one round, you only need to perform one round next.
+As you cannot see the actual video, your plan might fail, if the downstream video editting agent taking and executing your instruction on video clipping finds it infeasible. Therefore, your plan is refered to as a 'trial'. 
+In your current situation, some rounds or trials of the screening process might have already been conducted, and privided as following information:
+1, the 'failure history': it is about the history of failed previous trials of the screening of your current round. Here is the failure history for you (an empty indicates that you are making the first trial of this round): [failure_history_flag];
+2, the 'success history': it is about the history of the one success trial of all previous round. Here is the failure history for you (an empty indicates that you are at the first round): [success_history_flag].
+
+Now, here is the original question of this round for video question answering: "[quesion_flag]"
+Again, please tell your plan which describes what part of the video should be kept. Also, give the modified question under the assumption that the video is processed smoothly according to your plan.
+
+If you feel that there is no room to make such screening (e.g. when the question is being general like "what is this video about") so you feel that you shouldn't make any plan, you should decide to terminate the process.
+
+
+Hints:
+1. Before processing, remember to take a look in the 'failure history' and 'success history' information;
+2. If you find that the success history contains a case whose modified_question and the description both significantly overlap with the ones you are about to make, then you should avoid making the same plan again. In this case, you should switch to a clear reasonable sensible alternative plan, or make a decision to terminate the modification process if you can't confidently find one;
+3. If you find that the failure history contains a case whose modified_question and the description both significantly overlap with the ones you are about to make, or that any of the "reason" in the failure history records is going to make your attempt fail, then you should avoid making the same plan again. In this case, you should switch to a clear reasonable sensible alternative plan, or make a decision to terminate the modification process if you can't confidently find one.
+
+Return your plan in this json format (keep in mind here, that your response should be in json format):
+{"decision": [your decision, either "process" or "terminate"], "modified_question": [the modified question, or "N/A" if your previous decision is "terminate"], "description": [Description of what part of the video should be kept as wanted sub-clip. The description will be passed to downstream processer to validate. Return "N/A" if your decision is "terminate".]}
+
+"""
+\end{lstlisting}
+
+Prompt for the Validator module:
+
+\begin{lstlisting}
+
+You will be given a natural language instruction telling you to trim a video, which instruction itself might be infeasible. The reason it might be infeasible is because the agent who gave the instruction had no access to the actual video content, so it might be infeasible if take the actual video contenet into consideration.
+
+Therefore, I need you to be a helpful assistant to confirm if the trimming plan is feasible. 
+Specifically, your job is to act as a validator to validate whether it is feasible (whether the video content really supports the plan). 
+If it is feasible, you will need to implement the plan and return the resulting sub-clip of the plan in the form of a two-layer list. [In context example flag 1]
+If it is not feasible, you will need to tell the reason.
+
+Here are some examples and explanations for infeasible trimming instructions:
+
+[start of examples]
+
+[In context examples flag 2]
+
+[end of examples]
+
+You can invoke a viewer multiple times to acquire the video content (partial content each time), which viewer is a downstream module prepared to assist you.
+
+Note that the viewer is capable to deal with two type of questions:
+
+1. snippet rough scanning, e.g. "what is the video about from xxx second to xxx second"?
+2. localizing, e.g. "which segment contains xxx (event/object)?"
+
+Therefore, if [your decision] is "view", [your message] should follow one of the above two example templates. 
+
+Here is the trimming instruction you need to validate: [plan_flag]. 
+The video length is [video_length_flag] seconds, and its frame rate is [frame_rate_flag] fps.
+
+Now, in each following turn of this conversation, you need to give your response in this json format: {"decision": [your decision], "message": [your message]}. This works as follows:
+[your decision]: either "succeeded", "failed", or "view". "succeeded" means that the plan is successfully implemented, "failed" means that it is not, and by "view" you invoke the viewer to provide partial video content for you. If you choose "view", the viewer will take your message and return as you requested, and the conversation will continue. If you choose "succeeded" or "failed", it will be your final decision and the conversation will end.
+[your message]: if you choose "succeeded" as your decision, then it should be the two-layer list as mentioned before, as the video edit result of the plan. If you choose "failed", this should be a brief reason on the failure (e.g. requested timestamp exceeds video length, video doesn’t have the object/event needed, etc.). If you choose "view", this should be the question to ask the viewer about the video content.
+
+Hint: it is not always necessary to invoke the viewer. [In context example flags 3]
+
+For your ease of decision, here are some initial frame captions and their timestamps for you (in the form of key value pairs, where the value is the frame caption and the key is its corresponding timestamp, in the unit of second): [initial_captions_flag].
+[sys_usr_split]
+
+Now let's start!
+
+\end{lstlisting}
+
+Prompt for Viewer module:
+
+\begin{lstlisting}
+
+You are a helpful and smart assistant that can respond to an upstream request a video by invoking tools. The length of this video is [video_length_flag].
+
+Here is the content of the request: [validator_request_flag].
+
+Here are the tools you can access (you might access them multiple times if you want):
+
+1. scan(start, end): Return the overall caption of the video snippet (clip) between start and end timestamp, which are the parameters with the unit of second.
+2. localize(query): Return the video location, in the form of a timestamp range given by the start and end timestamp, which contains the visual content of the query (which query might be an object, event, etc.)
+3. get_image_cap(timestamp): parameter "timestamp" is an integer in the unit of second. Return the caption of the video frame at the given timestamp (regard the frame as an image).
+
+Now, in each turn of the following conversation, your response should be in the following json format: {"decision": [your decision], "message": [your message]}. This works as follows:
+[your decision]: either "tool" (if you wish to call tool in this round) or "respond" (if you feel that you are able to respond to the upstream module's request by comprehending your current knowledge acquired about the video.).
+[your message]: if your decision is "tool", then this should only contain tool calling following given format, e.g. 'get_image_cap(10)', 'scan(21, 35)', 'localize("kicking the ball")'. If your decision is "respond", then this should be your response to the upstream request.
+
+[sys_usr_split]
+
+Now let's start!
+
+\end{lstlisting}
+
+\subsection{Prompt used for ReSimplifyIt-simple framework}
+
+\begin{lstlisting}
+
+You are a assistant for the video question answering process, in which a candidate is presented with a video and a question for them to answer.\
+Your objective is to help the candidate so that they will be able to give the answer with watching the shortest posible sub-clip(s) of the video. \
+Your task is to cut the video to acquire this sub-clip(s) and also to modify the question, so that the candidate directly answering your modified question with presented only this sub-clip(s) of the video would be equivalent to answering the original question with presented the original whole uncut video. \
+
+[In context examples flag 1]
+
+You will need to cut the video in the form of providing me the timestamps, which is a list of [start, end] unit clips in the unit of second. \
+A tool (python function) will be helping you to get the frame caption of at a certain timestamp (in the unit of second). Whenever you need to call this tool, send a message in this json format: {"decision": "tool", "parameter": [timestamp you need]}. [In context example flag 2] \
+Whenever you think you are confident enough to provide the timestamp, return {"decision": "end", "timestamps": [your result timestamps], "revised_question": [your revised question]}. [In context example flag 3].
+
+Before we formally begin, here is a set of original captions with their timestamps provided for you to have an overall rough understanding of the video: [initial_captions_flag].
+Also, the frame rate of this video is [frame_rate_flag] frames per second, and the total duration is [duration_flag].
+
+[sys_usr_split]Now let's begin! and the original question is "[original_question_flag]".
+
+\end{lstlisting}
+
+\subsection{Prompt used for ReSimplifyIt-blind framework}
+
+\begin{lstlisting}
+You are a assistant for the video question answering process, in which a candidate is presented with a video and a question for them to answer.\
+Your objective is to help the candidate so thattheywill be able to give the answer with watching the shortest posible sub-clip(s) of the video. \
+Your task is to cut the video to acquire this sub-clip(s) and also to modify the question, so that the candidate directly answering your modified question with presented only this sub-clip(s) of the video would be equivalent to answering the original question with presented the original whole uncut video. \
+
+[In context examples flag 1]
+
+You will be provided with a list of tools to process the video, and the original question to be answered by the candidate based on which to select the frames. Here is the list of tools you have access to, with the description (content in the brackets are the arguments needed):
+[1]: get_duration(): return the duration of the video as a floating point value.
+[2]: get_resolution(): return the resolution of the video, as a tuple.
+[3]: get_total_frame_num(): return total number of the frames of the video, as an integer.
+[4]: grounding_select(obj_name, concerned_indices_input): return, in the form of a list of integers, the indices of all frames containing the object given by obj_name, after taking the intersection of indices provided by the argument 'concerned_indices_input'. 'concerned_indices_input' is also a list of indices, and will be set to indices of all frames in the video if 'None' is passed.
+[5]: indices_list_intersect(frame_indices_list_1, frame_indices_list_2): return, in the form of a list of integers, the intersection of the two arguments as list. Both argument 'frame_indices_list_1' and 'frame_indices_list_2' are a list of indices.
+[6]: indices_list_union(frame_indices_list_1, frame_indices_list_2): return, in the form of a list of integers, the union of the two arguments as list. Both argument 'frame_indices_list_1' and 'frame_indices_list_2' are a list of indices.
+[7]: indices_concat_and_fill(frame_indices_list_1, frame_indices_list_2):  first take the sorted union of the two lists given by the arguments, and then fill in all the missing values so that every two adjacent element only differ by 1. Both argument 'frame_indices_list_1' and 'frame_indices_list_2' are a list of indices.
+[8]: indices_concat(frame_indices_list_1, frame_indices_list_2): return, in the form of a list, the concatenation of the two lists provided by the arguments.
+[9]: timestamp_to_single_index(timestamp): return a list with a single integer, which integer is the index of the frame at the given timestamp. The argument timestamp is a floating point value, whose unit is second.
+[10]: single_timestamp_to_index_range(timestamp): return, in the form of a list, the indices of 60 consecutive frames, the midpoint of which is at the given timestamp. The argument timestamp is a floating point value, whose unit is second.
+[11]: range_timestamp_to_index_range(start, end): return, in the form of a list, the indices of all frames which are between the two timestamps which are provided by the arguments. The argument start and end are both floating point values, whose unit are both second.
+
+Above are all the tools to have access to. Please note that selecting frames out of all the frames of the original video is being cut and clipped, therefore you will also need to modify the aforementioned prompt, to make it align well with the reduced video frames.
+[sys_usr_split]
+Now the original question is: [question_flag]. Having access to the information of all the tools mentioned above, provide me the python code which could achieve the selection of frames. You may define variables to store intermediate result, and determine the value of some arguments when necessary, but you should not require the downstream task operator to replace any of your assumption on arguments, as no more information but the original video is provided to the downstream task. Please use the variable name 'final_frames' to store your final list of frame index. Please only provide the code and revised question in this format: {"Code:[your whole paragraph of code] Revised question:[your revised prompt]"}, where [your whole paragraph of code] should be an empty string if you think no tools need to be called and the whole original video should be passed to the downstream task.
+\end{lstlisting}
+
+\section{More on Related Work}
+\label{appendix: related_work}
+
+\paragraph{Video-LLMs for VideoQA}
+
+Video-LLMs have spurred a wave of models aimed at enhancing video understanding by leveraging the language capabilities of large language models (LLMs)~\citep{lin2023video, Ma_2024_CVPR, 10658165, Li2023LLaMAVIDAI, liu2024llavanext, Xu2024PLLaVAP, InternVL3, qwen2.5vl, qwen3vl, llavaonevision}. Some approaches~\citep{chen2023video-LLMmodelingvideosequence, li2024mvbenchcomprehensivemultimodalvideo, 2023videochat} utilize dedicated video encoders such as video transformers~\citep{gberta_2021_ICML} or convolution networks. However, these designs often demand large-scale annotated video-text data and significant computational resources. To address this, alternative methods adapt pre-trained image-domain MLLMs to video inputs~\citep{10658172, maaz-etal-2024-video}, offering improved practicality. Nonetheless, the sparsity and query-invariant nature of video encoding in existing models limits their ability to capture fine-grained spatial-temporal details effectively, especially under token budget constraints. This work addresses such inefficiencies by introducing a query-adaptive processing mechanism inspired by the principle of information screening, aiming to reconcile the trade-off between token efficiency and representational fidelity.
+
+\paragraph{LLM-assisted Agentic Reasoning for VideoQA}
+Another line of research for video question answering lies in building pure-text LLM assisted frameworks or multi-agent systems for VideoQA \citep{wang2024videotreeadaptivetreebasedvideo, shang-etal-2024-traveler, VideoAgent}. Compared to Video-LLMs, which represents end-to-end single-pass approaches, these methods adopt traditional or LLM-based methods to proactively sample relevant video frames. VideoAgent \citep{VideoAgent} and TravLER \citep{shang-etal-2024-traveler} utilized LLM's planning ability to conduct iterative keyframe searching, while VideoTree \citep{wang2024videotreeadaptivetreebasedvideo} presented query-adaptive hierarchical tree-based keyframe selection. 
+
+\paragraph{Temporal Sentence Grounding for Videos}
+
+Temporal sentence grounding (TSG) aims to localize the video segment best matching a language query. Early sliding-window methods (e.g., TALL~\citep{8237825}, MCN~\citep{8237880}) were costly, while later proposal-based~\citep{xu2019multilevel,10.1609/aaai.v33i01.33018199} and proposal-free methods~\citep{10.1609/aaai.v33i01.33019159,zhang-etal-2020-span} improved efficiency via query-guided proposals or direct boundary prediction. All these methods take a video and a query as input and predict a matching temporal span. In contrast, our proposed TVS generalizes beyond TSG by supporting inter-frame reasoning and joint adaptation over both video and query, rather than retrieving only frames directly mentioned in the query.
+
+\paragraph{Grounded videoQA}
+Another seemly-similar line of research lies in integrating grounding techniques into VideoQA pipelines \citep{nextgqa, cgbench}. Grounded VideoQA seeks to enhance model faithfulness by explicitly linking a model's textual output to ``visual cues'' or ``evidence'' within the video. This approach is effective at mitigating hallucinations for descriptive queries by enforcing \textit{perceptual} alignment. descriptive tasks, the approach suffers from a fundamental conceptual incongruity with the nature of complex video reasoning. The semantics of a query and its corresponding video segment are often holistically entangled; for example, a high-level question about intent, causality, procedure, or even a simple temporal relational reasoning does not map to an atomic piece of visual evidence but is inferred from a continuous temporal context. The attempt to impose a discrete justification framework onto this intertwined semantic space leads to an inherently brittle and ill-defined notion of a ``visual cue''. 
+
+TVS naturally sidesteps this ambiguity by fundamentally reframing the objective, turning from \textbf{\textit{``what to answer''}} to \textbf{\textit{``what to ask''}}. More fundamentally, TVS introduces a more principled paradigm that respects this intrinsic entanglement. Rather than seeking to atomize evidence for a given answer, TVS reformulates the task itself through a priori contextual simplification. It isolates the minimal, self-contained $(video, query)$ sub-problem through an \textbf{endomorphic transformation} that keeps with the original task space unchanged and preserves the necessary holistic context for reasoning. This approach is not merely a circumvention of the definitional challenge; it establishes a more fundamentally sound and cognitively aligned task. By first reducing the problem space to a manageable and semantically coherent unit—mirroring the human strategy of simplifying a problem before attempting to solve it—TVS offers a more robust foundation for complex video-language understanding.

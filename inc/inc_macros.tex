@@ -1,0 +1,106 @@
+% require xspace, array
+
+\newcommand{\stderr}[1]{\scriptsize $\pm #1$}
+
+%% layout
+% \newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+% \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+% \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\newcommand{\xpar}[1]{\noindent\textbf{#1}\ \ }
+\newcommand{\vpar}[1]{\vspace{3mm}\noindent\textbf{#1}\ \ }
+
+%% notations
+\newcommand{\sect}[1]{Section~\ref{#1}}
+\newcommand{\sectapp}[1]{Appendix~\ref{#1}}
+% \newcommand{\ssect}[1]{\S~\ref{#1}}
+\newcommand{\eqn}[1]{Equation~\ref{#1}}
+\newcommand{\fig}[1]{Fig.~\ref{#1}}
+\newcommand{\tbl}[1]{Table~\ref{#1}}
+\newcommand{\alg}[1]{Algorithm.~\ref{#1}}
+
+\newcommand{\degree}{\ensuremath{^\circ}\xspace}
+\newcommand{\ignore}[1]{}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\fcseven}{$\mbox{fc}_7$}
+% \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+% \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+%\renewcommand*{\thefootnote}{\fnsymbol{footnote}}
+
+%\DeclareMathOperator*{\argmin}{arg\,min}
+%\DeclareMathOperator*{\argmax}{arg\,max}
+
+\def\naive{na\"{\i}ve\xspace}
+\def\Naive{Na\"{\i}ve\xspace}
+
+\makeatletter
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+
+\def\eg{e.g\onedot} \def\Eg{E.g\onedot}
+\def\ie{i.e\onedot} \def\Ie{I.e\onedot}
+\def\cf{\emph{c.f}\onedot} \def\Cf{\emph{C.f}\onedot}
+\def\etc{etc\onedot}
+\def\vs{\emph{vs}\onedot}
+\def\wrt{w.r.t\onedot}
+\def\dof{d.o.f\onedot}
+\def\etal{et al\onedot}
+\def\aka{a.k.a\onedot}
+\makeatother
+
+%% comments
+\definecolor{MyDarkBlue}{rgb}{0,0.08,0.8}
+\definecolor{MyDarkGreen}{RGB}{45,155,45}
+\definecolor{MyDarkRed}{rgb}{0.8,0.02,0.02}
+\definecolor{MyOrange}{rgb}{1.0, 0.4, 0.2}
+\definecolor{MyPurple}{RGB}{111,0,255}
+\definecolor{MyRed}{rgb}{0.8,0.0,0.0}
+\definecolor{MyGold}{rgb}{0.75,0.6,0.12}
+\definecolor{MyDarkgray}{rgb}{0.66, 0.66, 0.66}
+
+\definecolor{RoseQuartzBg}{HTML}{F7CAC9}
+\definecolor{RoseQuartz}{HTML}{F5A798}
+\definecolor{Serenity}{HTML}{92A8D1}
+\definecolor{OrangeRed}{rgb}{1.0, 0.27, 0.0}
+\definecolor{Turquoise}{HTML}{0F4C81}
+\definecolor{mint}{rgb}{0.24, 0.71, 0.54}
+\definecolor{byzantine}{rgb}{0.74, 0.2, 0.64}
+\definecolor{byzantium}{rgb}{0.44, 0.16, 0.39}
+\definecolor{captioningtask}{HTML}{9C843F}
+\definecolor{qatask}{HTML}{CC6600}
+\definecolor{temporalmarker}{HTML}{7F00FF}
+\definecolor{targettext}{HTML}{3333FF}
+\definecolor{prompttext}{HTML}{666666}
+\definecolor{videolevel}{HTML}{330066}
+\definecolor{framelevel}{HTML}{0066CC}
+\definecolor{tokenlevel}{HTML}{336600}
+\definecolor{boxgrey}{HTML}{666666}
+\definecolor{boxblue}{HTML}{6C8EBF}
+\definecolor{boxgreen}{HTML}{82B366}
+\definecolor{textgreen}{HTML}{009900}
+\definecolor{textred}{HTML}{FF0000}
+\definecolor{textreddark}{HTML}{CC0000}
+\definecolor{textblue}{HTML}{0066CC}
+
+
+\newcommand{\model}{xx\xspace}
+\newcommand{\ours}{OURS\xspace}
+\newcommand{\modelfull}{xx\xspace}
+\newcommand{\dataset}{xx\xspace}
+\newcommand{\datasetfull}{xx\xspace}
+\newcommand{\cn}{\textcolor{MyRed}{[Citation!]}}
+\newcommand{\xhdr}[1]{{\noindent \textbf{#1}}}
+
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\def\bR{\mathbb{R}}
+\def\cL{\mathcal{L}}
+
+\newcommand{\mysubsection}[1]{\vspace{-4pt}\subsection{#1}\vspace{-4pt}}
+\newcommand{\myparagraph}[1]{\noindent\textbf{#1}}
+\newcommand{\myitem}{\vspace{-5pt}\item}
+\newcommand{\mybf}[1]{\vspace{4pt}\noindent\textbf{#1}}
+\newcommand{\mycell}[1]{\begin{tabular}[t]{@{}l@{}l}#1\end{tabular}}
+\newcommand{\mycellc}[1]{\begin{tabular}[t]{@{}c@{}c}#1\end{tabular}}

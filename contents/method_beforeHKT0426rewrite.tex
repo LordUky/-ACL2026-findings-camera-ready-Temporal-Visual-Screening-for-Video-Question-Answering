@@ -1,0 +1,150 @@
+
+%\section{Formulation of Temporal Visual Screening}
+%\label{TemporalVisualScreening}
+
+%\subsection{Task Definition}
+%We formally define the task of Temporal Visual Screening (TVS) as identifying the most information-dense segments of a video that are essential for \textbf{answering} a given text query while also synchronously simplifying the query to its most direct and interpretable form. Ideally, this appraoch ensures that the query and video is closely aligned with each other.
+
+
+
+
+
+\section{Method}
+\label{sec:method}
+
+\addressed{
+\jiateng{General Comments: We need to make sure that the design of each module is of novelty and insightful. The current writing did not highlight these. We need to highlight why the design is good and how is it different from exisitng framework.} \uky{done}
+
+\jiateng{For Launcher: It is different from common planners due to its availability to check history and can be improved with feedback for multiple times} \uky{done}
+
+\jiateng{For Validator: Helps verify the planning, making sure everything is going on smoothly, also serves as an interface to the viewer} \uky{done}
+
+\jiateng{For Viewer: Introduce why the two core ability is the most important, and how the implementation is helpful.} \uky{done}
+}
+
+\addressed{\jiateng{At the same time, the current intro to the framework is way too long. Now it takes up tp 4 pages, we need to shorted this to at most 2 pages (including your algorithms.) We need writings to emphazies on the training, and derive some qualitative analysis for both stages.}}
+
+\begin{comment}
+    
+\subsection{Temporal Visual Screening (TVS)}
+\label{TemporalVisualScreening}
+\jiateng{remove to formulation}
+Information screening is happening at every moment in our daily information consumption process. We refer information screening process under video question answering scenario as temporal visual screening. 
+
+Given two pairs of video and question $(V, q)$ and $(V', q')$, we consider $(V', q')$ as one possible output of temporal visual screening process of $(V, q)$ (namely, $(V', q') = tvs(V, q)$) if the following two conditions hold:
+\begin{itemize}
+[leftmargin=*,topsep=-1pt,itemsep=0ex]
+\item for $\forall$ answer $a$ in the answer space, $eval(a, (V, q)) = eval(a, (V', q'))$ holds;
+\item $V' \in V $;
+\end{itemize}
+
+where $eval$ is any suitable method to measure the correctness of the answer under the video and question, and $V' \in V $ practically means that the frames of $V'$ is a subset of $V$.
+
+It is worth noting that, the answer for video question answering remains unaffected under the temporal visual screening operation. This aligns with the initiative of information screening, which is to serve the original objective better by focusing on only the needed information and filtering out the rest.
+
+\end{comment}
+
+\subsection{ReSimplifyIt Framework}
+Drawing inspirations from humans' information screening process by dragging the video's progress bar, we propose ReSimplifyIt framework. The ReSimplifyIt framework is composed of three main agentic components: the Launcher, the Validator, and the Viewer, accompanied by two extra helper modules as memory trackers: the Failure History and the Success History. \addressed{\jiateng{Usually the histories are not counted into 'components' ? Maybe say there is a history tracker for storing bulabula.} \uky{done.}} \addressed{Considering the strong tool-calling \addressed{\jiateng{tool calling ?} \uky{spelling mistake, corrected}} and reasoning ability of large language models, we laverage GPT-4o as the core of some\jiateng{so which modules are init with GPT-4o ? make it clear} \uky{instructed readers to go to experiments section for implementation details.} of the modules when needed.} For implementation details, please refer to Section \ref{sec:experiments}. We denote $\{(v_r, q_r)|1 \leq r \leq R\}$ as the whole TVS process, where $v_r, q_r$ represents the output video clip and question of the $r$th round, respectively, and $R$ sets the maximum number of rounds. \addressed{\jiateng{If that's the case, why leaving answer in the process representation ?} \uky{I'm sorry, but what does this question mean?} \uky{I understand your question now, I think you are right and have removed the "answer" part.}} Refer to Algorithm~\ref{alg_ReSimplify} for a complete overview of our Temporal Visual Screening process performed by our ReSimplifyIt framework, and Figure \ref{fig:workflow_figure} for a snapshot demonstration. 
+
+
+
+
+
+\paragraph{Initiating a TVS round: Launcher drafting a video trimming instruction}
+The TVS process can be iteratively applied multiple times (i.e. rounds) on a video question answering case. We realize a Launcher module, assisted by two memory modules, the Success History and the Failure History, to launch a round. Specifically, in the $r$th round, we prompt our Launcher module with the input question $q_{r-1}$, which might be taken from the output of the last round or the original question in the videoQA datapoint. Inspired by human's ability to initiate trial plans when viewing the video without accessing the actual video content, the Launcher does not have access to the video content in any form, but only giving plans based on greedy assumptions instead. The Launcher outputs $(i_{r}, q_{r})$ as a trial decision, with $i_{r}$ and $q_{r, t}$ being the single-step instruction on trimming the video $v_{r-1}$ at the current trial, and the expected modified question on top of $q_{r-1}$ to align with the presumably successful instruction, respectively. \addressed{\jiateng{A planner at text-level} \uky{yes.}}
+
+The Launcher's decision might fail, primarily when its assumption mis-align with the truth. In this case, the decision is appended to the Failure History, which stores all failed decisions of the current Launcher, and re-trigger the Launcher with the updated information. This makes our design stand out from previous works \citep{VideoAgent, shang-etal-2024-traveler} bu enabling the Launcher to check the history and can self-improve with feedback for multiple times. Alternatively, If the Launcher's decision is deemed successful by downstream modules, the decision is appended to the Success History module and the Failure-history is re-initialized, and the round is completed. 
+
+
+We summarize the above action of the Launcher as follows:
+\begin{center}
+$(i_{r}, q_{r}) = Launcher(q_{r-1}, FH, SH, t)$
+\end{center}
+
+Where $FH$ and $SH$ are the Failure History and Success History, respectively, and $Launcher()$ stands for the Launcher module. $t$ stands for the task prompt.
+
+
+
+
+\paragraph{Validating a trial: Validator executing instruction}
+
+The Launcher gives video trimming instructions without having access to the video content, being the main factor causing the instruction to fail. The Validator takes the instruction $i_{r}$ from the Launcher and simultaneously performs two tasks: $(i).$ judge if the instruction is feasible (i.e. 'succeeded', and $(ii).$ attempt to execute the plan. The Validator outputs $(d_{r}, m_{r})$, where $d_{r}$ indicates its decision on whether the instruction is feasible, and $m_{r}$ represents the message, which is either the successfully trimmed video (in the form of timestamp ranges) if the decision is 'succeeded', or the reason if the decision is 'failed'. This process can be summarized as follows:
+
+\begin{center}
+$(d_{r}, m_{r}) = Validator(i_{r}, v_{r-1}, t)$
+\end{center}
+
+Where $Validator()$ stands for the Validator module and $t$ is the task prompt. Note that we enable the Validator to access the video content by interacting with the Viewer module. \addressed{\jiateng{Seems that the function of the validator is validating + execution, so why don't we split this into two modules ? (Mainly change in figure drawing?)} \uky{because the way it 'validates' upstream plans is through its execution results. sometimes its execution fails, that's when it validate the plan as 'infeasible'. }}
+
+
+
+\paragraph{Scanning the video: Viewer scanning and localizing} 
+
+The essence of information screening is to quickly filter out useless information as much as possible, using the least amount of cost in any format. As humans, when we perform a task that requires watching a video, we drag the progress bar at different point, in order to gain an overall understanding of the video content as accurate as possible while minimizing the total viewing time. Drawing inspiration from this process, we design the Viewer module to specifically focus on two complementary yet independent of tasks: 
+
+\textit{(i) Scanning:} provide the content of a video snippet given by a timestamp range;
+
+\textit{(ii) Localizing:} provide the timestamp range given the content describing a video snippet.
+
+Following complementary task structure, this design of the Viewer module achieves elegant and efficient bidirectional navigation by providing both top-down (content-driven) and bottom-up (time-driven) exploration, making the Viewer module highly flexible.
+
+The Validator may invoke the Viewer anytime within its operating cycle, requesting the Viewer to perform either one of these two tasks.  
+
+To perform both tasks, we utilize a two-stage keyframe extraction process combined with frame captioning, as a pre-requisite operation. In the first stage, we implement the MPEG-4 compression technique \citep{mpeg} and extract all the I-frames \addressed{\jiateng{introduce I-frames before you mentioning them} \uky{done}} as candidate keyframes. The I-frames of a video are usually frames that demonstrate rich visual information and high clarity, or serves as scene transition points. In the second stage, we apply a modified Isodata clustering algorithm on the visual features of these I-frames and take the cluster centers as final keyframes, which clustering algorithm proactively adjusts the number of clusters during the clustering process. This showcases superiority over other clustering method adopted in previous work \citep{wang2024videotreeadaptivetreebasedvideo, clustering_knn}, as it requires neither pre-defined cluster number nor external supervision signal, which ensures the generalizability and robustness of our plug-and-play framework. \addressed{\jiateng{Clearly explain why our approach is better than KNN based techniques, maybe even highlight this in previous sections.} \uky{have added a brief clause here. if put in previous section, not sure if it worth a paragraph if put in related work section, or part if our initiative if put in intro section, as clustering is just a small step used to initialize the prompt (in replace to uniform sampling).}} Refer to Algorithm~\ref{alg_isodata} for our Isodata frame clustering process.\addressed{\jiateng{The algorithm part is too long, its better if we can show this process in-terms of figure drawing or pipelines. If it must be shown in algorithms, make it as short as possible.} \uky{How about putting it into appendix? I just put it into the appendix.}} After this two-stage operation, we utilize off-the-shelf VLM to obtain the frame captions of the final keyframes. We denote the process above as follows: 
+
+\begin{center}
+$C = prep(start, end)$
+\end{center}
+
+Where $prep$ stands for the pre-requisite operation introduced above, $C$ stands for the acquired set of frame captions, and $start$ and $end$ are the starting and ending timestamps defining the video snippet to apply such operation on.
+
+Next, we describe the Viewer's execution process of the two tasks as follows:
+
+\textit{\textbf{(i) Scanning:}} Given the interested timestamp range $(start, end)$ as a video snippet, we feed an external LLM the set of frame captions and instruct it to infer the overall description of the video snippet. This drew inspiration from real-world scenarios that we capture the overview of a video clip by dragging its progress bar to only several important timestamps. We formally denote this process as follows:
+
+\begin{center}
+$Cap = Scanner(prep(start, end), t)$
+\end{center}
+
+Where $Cap$ stands for the resulting snippet overview, $t$ is the task prompt, and $Scanner()$ stands for the above process. 
+
+After obtaining the overview, the viewer might still call a frame caption tool to acquire the frame caption at a given timestamp, like how humans drag the progress bar to a certain point to check possibly missing information. After satisfied, the viewer might choose to terminate the conversation and return the improved overview.
+
+\textit{\textbf{(ii) Localizing:}} Under the information screening objective, we perform the localization task with accessing as few frames as possible. Given a short textual description expressing the interest, usually an event, action, or object, the localization process is expected to return a timestamp range of the video that shows the description. We implement the localization process as a three-stage process. \jiateng{The three step process is too complicated and too long to read.}
+
+First, we feed an external LLM the set of keyframe captions to let it acquire an overall capture of the video content. At the same time, we instruct the LLM to output five most possible timestamps that depicts the texture query. The LLM is able to call frame caption tool to acquire extra captions at arbitrary timestamps, before it's confident enough to output the answer. This process can be formally denoted as: $P = stage_1(prep(0, d), e, t)$, where $d$ is the video duration, $e$ is the extra frame captions acquired by tool calling, and $t$ is the task prompt. $P$ gives the resulting list of five timestamps which depicts the language query the best.
+
+Second, we initialize the conversation and feed it the frame captions at these five timestamps, while instructing it to pick the one timestamp that best depicts the language query, out of the five candidates. Also, the LLM is able to call frame caption tool to acquire extra captions at arbitrary timestamps before it's confident enough to output the answer. We can formally denote the process as: $t_{best} = stage_2(P, e, t)$, where $P$ is the output of the previous step, and $t$ is the task prompt.
+
+Last, we initialize the conversation again, and instruct the external LLM to expand the single timestamp $t_{best}$ from the last step to a timestamp range. The frame caption at $t_{best}$ is provided, and the LLM is still able to acquire more captions by tool calling to confirm the boundary. We can formally denote the process as: $(t_{start}', t_{end}') = stage_3(t_{best}, e, t)$, where $(t_{start}', t_{end}')$ stands for the output range, $t_{best}$ is the output of the previous step, and $t$ is the task prompt. Considering the difficulty in dealing with dynamic transitions of events, as explored by some previous work \citep{zheng2024trainingfreevideotemporalgrounding}, we simply apply a hard value of 5 seconds on the output. Formally, $(t_{start}, t_{end}) = (t_{start}'-5, t_{end}'+5)$, where $(t_{start}, t_{end})$ is the final localization result. \addressed{\yi{TODO: bold numbers that does best under each setting in the table.} \uky{re: done. }}
+
+\subsection{TVS-guided inference}
+\label{subsection:tvs-guided-inference}
+
+Attributed to the design nature that the TVS task doesn't alter the data format, the TVS process can be a plug-and-play adapter process that can be inserted to any videoQA pipeline. It can also be applied to both including inference and training. For the inference stage, given the input question $q$ and input video $V$, we perform TVS-guided inference as follows:
+
+$ response = videoQA(V', q') $,
+and \\
+$ V', q' = TVS(V, q) $,
+
+where $videoQA$ can be \emph{any} videoQA pipeline, including video-LLMs, LLM-assisted pipelines, or any others alternatives, and $TVS()$ stands for the Temporal Visual Screening process. 
+
+
+\subsection{TVS-guided training}
+\label{subsection:tvs-guided-training}
+The TVS process can also be applied to training stage, as described in \ref{subsection:tvs-guided-inference}. Given the input question $q$, input video $V$, and ground truth answer $a$, we compute the likelihood during the TVS-guided training as follows:
+
+$p\left( \mathbf{X}_\mathrm{A} \mid \mathbf{X}_\mathrm{V}, \mathbf{X}_\mathrm{Q} \right)
+= \prod_{i=1}^{L} p_{\theta} \left( \mathbf{X}_\mathrm{A}^{[i]} \mid \mathbf{X}_\mathrm{V}, \mathbf{X}_\mathrm{Q}^{[1:i-1]} \right)$, and \\
+$ \mathbf{X}_\mathrm{A}, \mathbf{X}_\mathrm{Q}, \mathbf{X}_\mathrm{V} = f_t(a), f_t(q'), f_v(v')$, and \\
+$ V', q' = TVS(V, q) $,
+
+where $f_t$, $f_v$ are the text and visual tokenizers, and $TVS()$ stands for the Temporal Visual Screening process.
+
+
+
+
+  
+
+  

@@ -1,0 +1,187 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[review]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+%Including images in your LaTeX document requires adding
+%additional package(s)
+\usepackage{graphicx}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{bm}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{adjustbox}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{ifthen}
+\usepackage{subcaption}
+\usepackage{comment}
+\usepackage{amsmath}
+\usepackage{natbib}
+\usepackage{listings}
+
+\lstdefinestyle{mystyle}{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  backgroundcolor=\color{gray!5},
+  columns=fullflexible,
+  keepspaces=true
+}
+\lstset{style=mystyle}
+
+
+\definecolor{darkblue}{rgb}{0, 0, 0.5}
+\hypersetup{colorlinks=true, citecolor=darkblue, linkcolor=darkblue, urlcolor=darkblue}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newboolean{showcomments}
+\setboolean{showcomments}{false}  % hide all commennts if set to false, otherwise displays.
+
+\newboolean{hideaddressedcomments}
+\setboolean{hideaddressedcomments}{false}  % hide addressed comments if true, otherwise displays.
+
+\newcommand{\showcomment}[3]{%
+    \ifthenelse{\boolean{showcomments}}
+        {\colorbox{#1}{\textcolor{white}{#2}}~{\textcolor{#1}{#3}}}
+        {} 
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\addressed}[1]{%
+    \ifbool{hideaddressedcomments}{}{#1}%
+}
+
+
+\newcommand{\heng}[1]{\showcomment{red}{heng}{#1}}
+
+\newcommand{\jiateng}[1]{\showcomment{MyDarkBlue}{jiateng}{#1}}
+
+\newcommand{\yuji}[1]{\showcomment{orange}{yuji}{#1}}
+
+\newcommand{\yi}[1]{\showcomment{teal}{yi}{#1}}
+
+\newcommand{\uky}[1]{\showcomment{byzantine}{uky}{#1}}
+
+\newcommand{\zihan}[1]{\showcomment{brown}{zihan}{#1}}
+
+
+
+\input{inc/inc_macros}
+\input{inc/inc_packages}
+
+
+% \title{Formatting Instructions For NeurIPS 2025}
+\title{Video-LLMs with Temporal Visual Screening}
+% \title{Video-LLMs with Temporal Visual Screening \hide{\\ \jiateng{Video-LLMs with Temporal Visual Screening ?} \uky{not sure, this sounds like we are introducing new videoLLMs (while actually we are not). How do other mentors think?} \yi{I think Jiateng's title is nice. It's eyecatchy (and ok in terms of not being too off-topic)} \uky{Cool, the title is now replaced.}}}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{%
+  David S.~Hippocampus\thanks{Use footnote for providing further information
+    about author (webpage, alternative address)---\emph{not} for acknowledging
+    funding agencies.} \\
+  Department of Computer Science\\
+  Cranberry-Lemon University\\
+  Pittsburgh, PA 15213 \\
+  \texttt{hippo@cs.cranberry-lemon.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+
+\input{contents/abstract}
+\input{contents/introduction}
+\input{contents/formulation}
+\input{contents/method}
+\input{contents/experiment_settings}
+\input{contents/evaluation_results}
+\input{contents/related_work}
+\input{contents/conclusions}
+\input{contents/limitations}
+
+
+
+%\section*{References}
+\bibliography{custom}
+
+
+\input{contents/appendix}
+
+\end{document}

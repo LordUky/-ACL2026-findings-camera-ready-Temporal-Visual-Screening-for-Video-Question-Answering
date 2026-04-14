@@ -1,0 +1,162 @@
+
+%\section{Formulation of Temporal Visual Screening}
+%\label{TemporalVisualScreening}
+
+%\subsection{Task Definition}
+%We formally define the task of Temporal Visual Screening (TVS) as identifying the most information-dense segments of a video that are essential for \textbf{answering} a given text query while also synchronously simplifying the query to its most direct and interpretable form. Ideally, this appraoch ensures that the query and video is closely aligned with each other.
+
+
+
+%\section{Method}
+
+\jiateng{I feel the best way to present this is that we first have a section enhancing that 'TVS is the bottleneck of current Video-LLMs', say we assume that TVS tasks can be perfectly resolved, we show a table where model performance can be significantly boosted. However, we also show that current appraoches does not resolve TVS well. We use this section to enhance the importance of the TVS task itself, before coming to an approach that 'solves TVS' } \uky{added leading words for eval results section, to proper refer to the tables}
+
+
+\section{Method}
+\label{sec:method}
+
+\addressed{
+\jiateng{General Comments: We need to make sure that the design of each module is of novelty and insightful. The current writing did not highlight these. We need to highlight why the design is good and how is it different from exisitng framework.} \uky{done}
+
+\jiateng{For Launcher: It is different from common planners due to its availability to check history and can be improved with feedback for multiple times} \uky{done}
+
+\jiateng{For Validator: Helps verify the planning, making sure everything is going on smoothly, also serves as an interface to the viewer} \uky{done}
+
+\jiateng{For Viewer: Introduce why the two core ability is the most important, and how the implementation is helpful.} \uky{done}
+}
+
+\addressed{\jiateng{At the same time, the current intro to the framework is way too long. Now it takes up tp 4 pages, we need to shorted this to at most 2 pages (including your algorithms.) We need writings to emphazies on the training, and derive some qualitative analysis for both stages.}}
+
+\subsection{ReSimplifyIt Framework}\yuji{section 3.1 is much clearer than section 2. Could you write section 2.1 in this style?}
+Drawing inspirations from \textit{dynamic and interactive attention deployment} \citep{FITNO1, GS2.0NO2} and humans' information screening process by dragging the video's progress bar, we propose our multi-agent ReSimplifyIt framework. The framework is composed of three main agentic components: the Launcher, the Validator, and the Viewer, accompanied by two extra helper modules as memory trackers: the Failure History and the Success History. For implementation details, please refer to Section \ref{sec:experiments}. We denote $\{(v_r, q_r)|1 \leq r \leq R\}$ as the whole TVS process, where $v_r, q_r$ represents the output video clip and question of the $r$th round, respectively, and $R$ sets the maximum number of rounds. Refer to Algorithm \ref{alg_tvs} for the complete algorithm of our TVS process performed by our ReSimplifyIt framework, and Figure \ref{fig:workflow_figure} for a snapshot demonstration. 
+
+\paragraph{Initiating a TVS Round: Launcher drafting a video trimming instruction}
+
+The TVS process unfolds over iterative rounds, akin to how humans drag the progress bar multiple times based solely on empirical surmise before actually viewing the video content. In each round~$r$, a \textbf{Launcher} module generates a trimming instruction~$i_r$ and a revised query~$q_r$ as a trial, which trimming instruction may only contain \textit{high-level} semantics yielding a declarative goal (e.g. ``keep the clip after event X'' instead of ``clip([5s,10s])''), based solely on the previous query~$q_{r-1}$, without vision access. This trial-based methodology strikes an effective balance between performance and efficiency as the inherent semantic relevance between the query and video input can thereby serve as a prior to enabling plausible instruction generation without video access.
+
+Akin to human landing on undesired segments after dragging the progress bar, we equip the Launcher module with self-correction based adaptive refinement mechanisms to tackle rare failure cases and ensure correctness. Specifically, we maintain two memory tracker modules: \textbf{Success History (SH)} and \textbf{Failure History (FH)}. A successful trial is added to $SH$ and terminates the round; otherwise, it is recorded in $FH$ and retriggers the Launcher with updated feedback.
+
+We formalize the Launcher's behavior as:
+\begin{center}
+$(i_r, q_r) = \texttt{Launcher}(q_{r-1}, FH, SH, t)$
+\end{center}
+where $t$ denotes the task prompt.
+
+Our feedback-driven formulation achieves iterative self-correction, a key distinction from prior work~\citep{VideoAgent, shang-etal-2024-traveler}. It decomposes the task into progressive rounds to enable iterative self-correction and foster structured reasoning, which enhances multi-hop robustness while minimizing correction costs. The lightweight, video-free Launcher further boosts efficiency by performing abductive reasoning on the language query without sacrificing fidelity.
+
+\paragraph{Validating a trial: Validator executing instruction}
+
+The \textbf{Validator module} receives the high-level instruction $i_r$ from the Launcher and determines its success through execution. The module performs two tightly coupled tasks:  
+(i) \textit{assessing the feasibility} of the instruction (i.e., whether it is able to succeed), and  
+(ii) \textit{executing} the instruction to obtain results or feedback.
+Unlike the Launcher, the Validator \textit{has indirect access to visual semantics} by interacting with the Viewer module while not taking visual inputs or frame captions itself.
+
+It returns a tuple $(d_r, m_r)$, where:
+\begin{itemize}
+  \item $d_r$ indicates whether the instruction is deemed \texttt{succeeded} (feasible) or \texttt{failed} (infeasible),
+  \item $m_r$ contains either the resulting trimmed video (in the form of timestamp ranges) if successfully executed the instruction, or an explanation if failed.
+\end{itemize}
+
+\begin{center}
+$(d_r, m_r) = \texttt{Validator}(i_r, v_{r-1}, t)$
+\end{center}
+
+Here, $\texttt{Validator}()$ denotes the Validator module, $v_{r-1}$ is the previous video state, and $t$ is the task prompt. 
+
+The Validator may also decide to call the Viewer module before returning to Launcher. In this scenario, $d_r$ and $m_r$ stand for this decision symbol and the message to the Viewer, respectively.
+
+Our unified Validator assesses plan viability via direct execution rather than handcrafted rules, embodying a ``competence from consequence'' philosophy~\citep{brooks1991intelligence}. This integration simplifies control flow and reduces inter-module communication. Crucially, failures are not terminal but provide constructive feedback for the Launcher to refine instructions, transforming execution into a mechanism for both validation and continual adaptation.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Scanning the video: Viewer scanning and localizing}
+
+Inspired by the Bottom-Up (stimulus-driven) and Top-Down (goal-driven) Activation schema proposed by GS2.0 \citep{GS2.0NO2}, which also guides humans' scrubbing the seek bar when watching videos, we design the \textbf{Viewer} module to explicitly incorporate two complementary tasks: 
+
+\textit{\textbf{(i) Scanning:}} summarize the content of a video snippet given a timestamp range;
+
+\textit{\textbf{(ii) Localizing:}} retrieve a timestamp range given a text summarization of a video snippet.
+
+Following complementarily symmetric task structure, this design of the Viewer module achieves elegant and efficient bidirectional navigation by providing both top-down (content-driven) and bottom-up (time-driven) exploration, making the Viewer module highly flexible.
+
+To support both tasks, we first perform a two-stage keyframe extraction and captioning process: (1) extract I-frames using MPEG-4 compression to capture key visual content, and (2) apply a dynamic frame clustering algorithm to select the final keyframes, which adaptively adjust the number of clusters without supervision. Compared to frame clustering techniques in previous work \citep{wang2024videotreeadaptivetreebasedvideo}, this approach demonstrates stronger generalizability and robustness. For the algorithm of the keyframe extraction process, please refer to algorithm \ref{alg_isodata}. This pre-processing is denoted as:
+
+\begin{center}
+$C = prep(start, end).$
+\end{center}
+
+\textbf{Scanning} executes by summarizing the snippet content via LLM reasoning over $C$, optionally querying additional frames, and is denoted as:
+\begin{center}
+$Cap = Scanner(prep(start, end), t).$
+\end{center}
+
+\textbf{Localizing} follows a lightweight three-stage search: (1) locate top-k candidate timestamps, (2) select the best, and (3) expand it into a full range. The LLM may optionally query extra frames for confirmation, ensuring minimal frame access while maintaining accuracy. This process is denoted as:
+\begin{center}
+$(t_{start}, t_{end}) = Localizer(prep(0, d), q).$
+\end{center}
+
+This lightweight yet effective three-stage design achieves fine-grained temporal grounding with minimal overhead, showcasing the Viewer’s adaptability and plug-and-play potential.
+
+Algorithms of the keyframe extraction and localization stages are provided in appendix \ref{appendix_viewer}.
+
+
+\subsection{TVS-guided inference}
+\label{subsection:tvs-guided-inference}
+
+Attributed to its endomorphic property, TVS can serve as a plug-and-play adapter process for any VideoQA pipeline, including both inference and training stages. Given the input question $q$ and video $V$, TVS-guided inference is conducted as:
+
+$$ response = VideoQA(V', q') $$
+$$ V', q' = TVS(V, q) $$
+
+where $VideoQA$ can be \emph{any} VideoQA pipeline, including video-LLMs, LLM-assisted pipelines, or any others alternatives, and $TVS()$ stands for the Temporal Visual Screening process. 
+
+
+\subsection{TVS-guided training}
+\label{subsection:tvs-guided-training}
+TVS can also be applied to training stage to purify supervision signal. Given input question $q$, input video $V$, and ground truth answer $a$, we compute the likelihood during the TVS-guided training as:
+
+\vspace{-2em}
+
+% $$
+% p\left( \mathbf{X}_\mathrm{A} \mid \mathbf{X}_\mathrm{V}, \mathbf{X}_\mathrm{Q} \right)
+% = \prod_{i=1}^{L} p_{\theta} \left( \mathbf{X}_\mathrm{A}^{[i]} \mid \mathbf{X}_\mathrm{V}, \mathbf{X}_\mathrm{Q}, \mathbf{X}_\mathrm{A}^{[1:i-1]} \right)
+% $$ 
+% % This one is too wide in two-coloum setting,
+
+
+% \begin{equation}
+% \begin{split}
+%     p( \mathbf{X}_\mathrm{A} \mid \mathbf{X}_\mathrm{V}, \mathbf{X}_\mathrm{Q} ) & = \\
+%     & \prod_{i=1}^{L} p_{\theta} \left( \mathbf{X}_\mathrm{A}^{[i]} \mid \mathbf{X}_\mathrm{V}, \mathbf{X}_\mathrm{Q}, \mathbf{X}_\mathrm{A}^{[1:i-1]} \right)
+% \end{split}
+% \end{equation}
+% The above is two wide in two-coloum setting, but this one breask into two rows and also adds an equation number
+
+
+% \begin{equation}
+% p\left( \mathbf{X}_\mathrm{A} \mid \mathbf{X}_\mathrm{V}, \mathbf{X}_\mathrm{Q} \right)
+% = \prod_{i=1}^{L} p_{\theta} \left( \mathbf{X}_\mathrm{A}^{[i]} \mid \mathbf{X}_\mathrm{V}, \!\mathbf{X}_\mathrm{Q}, \!\mathbf{X}_\mathrm{A}^{[1:i-1]} \right)
+% \end{equation}
+% % This one saves a tiny bit of width compared to the first one, but still adds equation number
+
+\begin{small}
+$$
+p\left( \mathbf{X}_\mathrm{A} \mid \mathbf{X}_\mathrm{V}, \mathbf{X}_\mathrm{Q} \right)
+= \prod_{i=1}^{L} p_{\theta} \left( \mathbf{X}_\mathrm{A}^{[i]} \mid \mathbf{X}_\mathrm{V}, \mathbf{X}_\mathrm{Q}, \mathbf{X}_\mathrm{A}^{[1:i-1]} \right)
+$$ 
+% This one is too wide in two-coloum setting,
+
+$$ \mathbf{X}_\mathrm{A}, \mathbf{X}_\mathrm{Q}, \mathbf{X}_\mathrm{V} = f_t(a), f_t(q'), f_v(v')$$
+
+$$ V', q' = TVS(V, q) $$
+\end{small}
+
+
+
+where $f_t$, $f_v$ are the text and visual tokenizers. \addressed{\yi{this last phrase is repeated across the last two subsections. Math formulation can also be better explained imo.}\uky{unnecessary phrasing removed, and math formula repolished}}
+
+
+
+
+  
+
+  
