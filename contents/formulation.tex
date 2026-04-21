@@ -2,73 +2,67 @@
 
 \subsection{Task Definition}
 \label{tvs_def}
-Given a full-length video $V = \{F_1, F_2, \ldots, F_T\}$ of $T$ ordered frames and a natural language query $Q$, the \textbf{Temporal Visual Screening (TVS)} task produces:
+We formulate Temporal Visual Screening (TVS) as a \textbf{structurally-constrained compression problem} grounded in a generative view of VideoQA. We treat the ground-truth answer $A$ as a latent fact about the world---e.g., a procedural truth such as \textit{``the step after cutting mushrooms is mixing vegetables''}---with the video $V$ and query $Q$ jointly observed as $(V, Q) \sim p(V, Q \mid A)$. A video records an instantiation of the underlying fact; a natural-language query points to an aspect thereof. This mirrors the measurement-invariance principle in the physical sciences: observations \textit{access} a fact rather than constitute it.
 
-\begin{itemize}[leftmargin=*,noitemsep,topsep=0pt]
-    \item a reconstructed query $q$, derived from $Q$, and
-    \item a \textbf{continuous} video
-    \vspace{-0.3 em}
+Under this view, any compression $(V, Q) \to (v, q)$ forms the Markov chain
+\vspace{-0.2em}
+\[
+A \;\to\; (V, Q) \;\to\; (v, q),
+\]
+and the Data Processing Inequality~\citep{cover2006elements} yields
+\vspace{-0.2em}
+\[
+I\big((v, q);\, A\big) \;\leq\; I\big((V, Q);\, A\big),
+\]
+with equality iff $(v, q)$ is an $A$-sufficient statistic of $(V, Q)$. TVS targets the \textit{minimal} such sufficient statistic: the most compact admissible compression that loses no answer-relevant information, instantiating the Information Bottleneck principle~\citep{tishby1999information, tishby2015deep} directly in the original input space rather than in a latent code~\citep{alemi2017deep}.
+
+Formally, TVS defines a transformation
+\vspace{-0.2em}
+\[
+\mathcal{F}_{\text{TVS}}:\; (V, Q) \;\longmapsto\; (v, q)
+\]
+over the original bimodal task space (Figure~\ref{fig:tvs_task_compare}), where $(v, q)$ is required to satisfy two \textit{admissibility conditions} and minimize two complementary \textit{complexity measures}.
+
+\paragraph{Admissibility conditions.}
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=1pt]
+    \item \textbf{(C1) Structural Continuity.} $v$ is the concatenation of $n \geq 1$ non-overlapping contiguous subsegments of $V$:
+    \vspace{-0.2em}
     \begin{multline*}
-    v = \{F_{s_1}, F_{s_1+1}, \ldots, F_{e_1},\ F_{s_2}, F_{s_2+1}, \ldots, \\ F_{e_2},\ \ldots, F_{s_n}, F_{s_n+1}, \ldots, F_{e_n}\} \subseteq V
+    v = \{F_{s_1}, \ldots, F_{e_1}, F_{s_2}, \ldots, F_{e_2}, \ldots, \\ F_{s_n}, \ldots, F_{e_n}\} \subseteq V,
     \end{multline*}
-    formed by concatenating $n$ non-overlapping segments of $V$, with $1 \leq s_1 \leq e_n \leq T$ and $n \geq 1$,
+    with $1 \leq s_1 \leq e_n \leq T$, preserving low-level temporal integrity essential for motion, appearance, and scene dynamics.
+
+    \item \textbf{(C2) Answer Sufficiency.} For any reasonable VideoQA agent $\mathcal{M}$,
+    \vspace{-0.2em}
+    \[
+    \mathcal{M}(q, v) \;=\; \mathcal{M}(Q, V).
+    \]
+    This is an instance-level strengthening of the population-level sufficient-statistic condition $I((v,q);A) = I((V,Q);A)$; the two coincide when the model family attains the information-theoretic limit, and we adopt the pointwise form for practical robustness.
 \end{itemize}
 
-\noindent such that $v$ preserves \textit{low-level temporal continuity} essential for motion, spatial, and object-level reasoning, and $(v,q)$ remains sufficient to recover the original answer. We define an endomorphic transformation
-\vspace{-0.2 em}
-\[
-\mathcal{F}_{\text{TVS}} : (V, Q) \rightarrow (v, q)
-\]
-over the same bimodal task space (Figure~\ref{fig:tvs_task_compare}), subject to the efficacy conditions given below.
-
-\subsection{Information-Theoretic View}
-\label{tvs_ib}
-We adopt a \textit{generative} view of VideoQA: the answer $A$ is an objective fact that exists independently of any particular framing, and the observed pair $(V, Q)$ is drawn conditional on $A$. TVS further processes $(V, Q)$ into a compact pair $(v, q)$, yielding the Markov chain
+\noindent We denote the set of admissible pairs by
 \vspace{-0.2em}
 \[
-A \;\longrightarrow\; (V, Q) \;\longrightarrow\; (v, q),
+\mathcal{A} = \big\{\, (v, q) : v \text{ satisfies (C1)},\ \forall\,\mathcal{M},\ \mathcal{M}(q, v) = \mathcal{M}(Q, V) \,\big\}.
 \]
-analogous to measurement invariance in the physical sciences: reformulating the observation does not alter the underlying fact. The data processing inequality thus gives
+
+\paragraph{Minimality objectives.}
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=1pt]
+    \item \textbf{(O1) Video-side minimality.} Minimize $\mathrm{Size}(v)$, the content retained from $V$ (e.g., total duration or frame count).
+    \item \textbf{(O2) Query-side minimality.} Minimize $\mathrm{Infer}(q)$, the number of reasoning steps required to derive $A$ from $(v, q)$. For example, reasoning on \textit{``within 5\,s after event A''} incurs three steps: localizing event A, relational reasoning on \textit{``after''}, and temporal reasoning on \textit{``5\,s''}.
+\end{itemize}
+
+\paragraph{Constraint re-allocation and the collapse of the Pareto frontier.}
+\textit{A priori}, (O1) and (O2) admit a Pareto trade-off, so the optimum could span an entire frontier rather than a unique point. In TVS, however, they are not independent---they are two faces of a single underlying compression act. Each reasoning step removable from $q$ corresponds to a constraint in the original query that can be \textit{structurally pre-satisfied} by trimming $V$: rather than verifying the constraint textually, the transformation excises the non-compliant portion of the video. Consequently, every reduction in $\mathrm{Infer}(q)$ is paid for by an equivalent reduction in the span of $V$ that must be retained to remain $A$-sufficient, and vice versa. The two objectives descend in lockstep along the admissible region, and the Pareto frontier collapses to essentially a single operating point.
+
+We emphasize that this re-allocation is a \textit{mechanism-level account} of why a unique optimum exists; it does not redefine the task. The answer $A$ and the answer space are preserved throughout---no constraint is discarded, each is merely \textit{conserved across modalities}---so TVS remains a joint bimodal transformation, distinct from unimodal query relaxation or evidence-retrieval paradigms~\citep{nextgqa, cgbench}.
+
+This mechanism further justifies a \textbf{video-priority lexicographic} resolution of the bi-objective problem: video compression is the \textit{driver} of the transformation and query adaptation its downstream consequence---once $v^*$ is fixed, the remaining freedom in $q$ is exhausted by rewriting to the shortest form compatible with $v^*$. Formally,
 \vspace{-0.2em}
 \[
-I\big((v,q);\,A\big) \;\leq\; I\big((V,Q);\,A\big),
+\boxed{\,(v^*,\, q^*) = \Big(\!\mathop{\arg\min}_{v:\, \exists\, q,\, (v, q) \in \mathcal{A}}\! \mathrm{Size}(v),\ \mathop{\arg\min}_{q:\, (v^*, q) \in \mathcal{A}}\! \mathrm{Infer}(q)\Big).\,}
 \]
-with equality iff $(v, q)$ is a \textit{sufficient statistic} for $A$. Combined with the Information Bottleneck principle~\citep{tishby1999information, tishby2015deep}, TVS seeks a compressed bimodal input that retains answer-relevant information while discarding task-irrelevant content:
-\vspace{-0.2em}
-\[
-\mathcal{L}_{\text{IB}}(v,q) \;=\; I\big((v,q);\,A\big) \;-\; \beta \cdot I\big((V,Q);\,(v,q)\big),
-\]
-where $\beta > 0$ trades answer sufficiency against input compression. In contrast to latent-code IB~\citep{alemi2017deep}, TVS produces an \textit{interpretable artifact} $(v,q)$ in the original input space, which doubles as a controllable handle for downstream reasoning.
 
-\paragraph{Efficacy conditions for TVS}
-Maintaining both \textit{uni-modal efficacy} and \textit{cross-modal synergy}, TVS trims insignificant video segments while \textit{synchronously} reconstructing the text query. The transformations applied to $q$ and $v$ must be tightly coupled to preserve answer consistency under input reduction. Formally:
-
-\begin{enumerate}[leftmargin=*,topsep=2pt,itemsep=1pt]
-    \item \textbf{Continuity for Video Output}: $v$ must be a temporally \textbf{contiguous} subsegment of $V$, or a concatenation of such segments, preserving low-level visual integrity for tracking motion, appearance, and scene dynamics. \textit{(Structural constraint on the feasible compression space.)}
-
-    \item \textbf{Sufficiency for Answer}: $(v,q)$ must remain a sufficient statistic for $A$,
-    \[
-    I\big((v,q);\,A\big) \;=\; I\big((V,Q);\,A\big),
-    \]
-    saturating the data processing inequality. At the frame level, removing any $F_t \in v$ incurs a non-trivial change in model output: $\exists\, \delta a$ s.t.\ $\mathcal{M}(q, v\setminus\{F_t\}) = a + \delta a,\ |\delta a| > \epsilon$, where $\epsilon$ is a task-specific tolerance setting the operating $\beta$.
-
-    \item \textbf{Reasoning Minimality for Query Output}:
-    \[
-    q^* \;=\; \operatorname*{argmin}_{q} \, \mathrm{Infer}(q),
-    \]
-    where $\mathrm{Infer}(q)$ counts reasoning steps needed to derive $A$ from visual input (e.g., ``within 5\,s after event A'' takes three: localize A, apply ``after'', bound ``5\,s''). \textit{(Query-side compression: a tractable proxy for reducing $I(Q;q)$, shifting reasoning load from the downstream model to the reconstructed problem.)}
-
-    \item \textbf{Cross-modal Synergy}: for any reasonable VideoQA agent $\mathcal{M}$,
-    \[
-    \forall \mathcal{M}, \quad \mathcal{M}(q, v) = \mathcal{M}(Q, V).
-    \]
-    \textit{(Answer invariance across architectures, the behavioral counterpart of sufficiency.)}
-\end{enumerate}
-
-\paragraph{Why the Pareto frontier collapses}
-A naive reading of conditions 2 and 3 suggests a Pareto trade-off between preserving $A$-sufficiency and minimizing $\mathrm{Infer}(q)$. In practice, the two objectives are not independent: reducing $\mathrm{Infer}(q)$ by stripping query conditions that target a particular portion of the video automatically reduces the span of $V$ that must be retained to remain $A$-sufficient, and vice versa. The two objectives thus decrease in lockstep along the admissible region, and the Pareto frontier typically collapses to a single operating point that ReSimplifyIt (Section~\ref{sec:method}) converges to iteratively.
-
-We stress that this constraint re-allocation is a \textit{mechanism-level account} of why TVS admits a unique optimum, not a redefinition of the task. TVS remains a joint bimodal transformation $\mathcal{F}_{\text{TVS}}: (V, Q) \to (v, q)$ that preserves both the answer and the answer space; it is \textbf{not} query relaxation, since no constraint is discarded---all are conserved across modalities.
 
 \subsection{Integrating TVS into Video-LLM Workflows}
 
@@ -77,4 +71,4 @@ TVS plugs into both training and inference pipelines of video-language models as
 \paragraph{TVS for Inference-Time Simplification in Video-LLMs} At inference, TVS pre-processes $(V, Q)$ into $(v, q)$ (see Section~\ref{sec:method}), reducing the temporal and semantic complexity the downstream model must handle and concentrating it on compact, task-relevant content for fine-grained temporal reasoning and direct visual grounding.
 
 \paragraph{TVS for Improving Training-Time Visual-Language Alignment}
-Video-LLM supervision tuples $(V, Q, a)$ often couple abstract or multi-hop queries with unfocused video. TVS reshapes them into compact triples $(v, q, a)$, where $v$ is a high-utility segment and $q$ is a grounded reformulation of $Q$, offloading off-target supervision to upstream modules so that the model specializes in two core competencies: temporal understanding and multimodal alignment.
+Video-LLM supervision tuples $(V, Q, a)$ often couple abstract or multi-hop queries with unfocused video. TVS reshapes them into compact triples $(v, q, a)$, where $v$ is a high-utility segment and $q$ is a grounded reformulation of $Q$, offloading off-target supervision to upstream modules so the model specializes in two core competencies: temporal understanding and multimodal alignment.
