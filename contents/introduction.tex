@@ -17,7 +17,11 @@ Traditional grounding or grounded QA \citep{nextgqa, cgbench} fails to address t
 This calls for an interpretable, controllable, goal-oriented mechanism that jointly optimizes reasoning structure and cognitive load while treating input modalities \textbf{as a whole}. We propose \underline{\textbf{T}}emporal \underline{\textbf{V}}isual \underline{\textbf{S}}creening (TVS), a cognitively inspired \textbf{endomorphic} transformation:
 \[
 \mathcal{F}_{\text{TVS}} : (V, Q) \rightarrow (v, q)
-\] that reconstructs a computationally tractable, semantically coherent instance within the same multimodal task space. TVS is goal-invariant by design, aligning with the fixity of the Goal State in Problem Space Theory \citep{HumanProblemSolvingNO12}, sharpening cognitive-level multimodal alignment, and focusing subsequent multimodal understanding.
+\] that reconstructs a computationally tractable, semantically coherent instance within the same multimodal task space.
+
+Mathematically, TVS is a \textbf{structurally-constrained sufficient-statistic problem}: the compressed pair $(v, q)$ should preserve all answer-relevant information in $(V, Q)$ under a temporal-continuity constraint on $v$, while minimizing residual task complexity on both modalities. This identification places TVS in the \textit{Information Bottleneck lineage}~\citep{tishby1999information, tishby2015deep}, instantiated over the discrete bimodal input space rather than a learned latent code.
+
+TVS is goal-invariant by design, aligning with the fixity of the Goal State in Problem Space Theory \citep{HumanProblemSolvingNO12}, sharpening cognitive-level multimodal alignment, and focusing subsequent multimodal understanding.
 
 TVS yields four concrete benefits: (i) Training alignment: under fixed budgets, removing off-target supervision boosts gradient signal-to-noise ratios and reduces spurious correlations; (ii) Inference robustness: offloading non-informative perceptual burdens shortens the implicit reasoning program, unleashing reasoning capabilities; (iii) Interpretability: the compact $(v, q)$ is a controllable, faithful artifact exposing model bottlenecks; (iv) Generalizability: as a model-agnostic front-end, TVS benefits diverse VideoQA agents.
 
