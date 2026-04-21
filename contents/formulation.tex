@@ -14,7 +14,7 @@ and the Data Processing Inequality~\citep{cover2006elements} bounds the mutual i
 \[
 I\big((v, q);\, A\big) \;\leq\; I\big((V, Q);\, A\big),
 \]
-with equality iff $(v, q)$ is an $A$-sufficient statistic of $(V, Q)$. TVS targets the \textit{minimal} such sufficient statistic: the most compact admissible compression that loses no answer-relevant information, instantiating the Information Bottleneck principle~\citep{tishby1999information, tishby2015deep} directly in the original input space rather than in a latent code~\citep{alemi2017deep}.
+with equality iff $(v, q)$ is an $A$-sufficient statistic of $(V, Q)$.\footnote{We use mutual information as a \textit{theoretical characterization}, not a computable training signal; see Appendix~\ref{appendix:measurability} for the decomposition between the information-theoretic view and the operational conditions (C1--C2) and objectives (O1--O2).} TVS targets the \textit{minimal} such sufficient statistic: the most compact admissible compression that loses no answer-relevant information, instantiating the Information Bottleneck principle~\citep{tishby1999information, tishby2015deep} directly in the original input space rather than in a latent code~\citep{alemi2017deep}.
 
 Formally, TVS defines a transformation
 \vspace{-0.2em}
@@ -37,7 +37,7 @@ over the original bimodal task space (Figure~\ref{fig:tvs_task_compare}), where 
     \[
     \mathcal{M}(q, v) \;=\; \mathcal{M}(Q, V).
     \]
-    At the population level this corresponds to the sufficient-statistic identity $I((v,q); A) = I((V,Q); A)$---the equality case of the DPI above, attained precisely when $(v,q)$ loses no $A$-relevant information. We adopt the pointwise form to enforce answer preservation \textit{model-agnostically}, for every $\mathcal{M}$ rather than only in expectation.
+    At the population level this corresponds to the sufficient-statistic identity $I((v,q); A) = I((V,Q); A)$\footnote{The correspondence between mutual-information preservation and answer invariance rests on the sufficient-statistic property~\citep[Ch.~2.9]{cover2006elements}; see Appendix~\ref{appendix:mi_answer_link} for how (C2) tightens this equivalence from existence to universality across model families.}---the equality case of the DPI above, attained precisely when $(v,q)$ loses no $A$-relevant information. We adopt the pointwise form to enforce answer preservation \textit{model-agnostically}, for every $\mathcal{M}$ rather than only in expectation.
 \end{itemize}
 
 \noindent Let $\mathcal{A}$ denote the set of pairs $(v, q)$ satisfying both (C1) and (C2).
@@ -49,11 +49,10 @@ over the original bimodal task space (Figure~\ref{fig:tvs_task_compare}), where 
 \end{itemize}
 
 Rather than tracing a Pareto frontier, the two objectives admit a unique solution via \textbf{video-priority lexicographic} resolution\footnote{A mechanism-level account---based on \textit{constraint re-allocation} between modalities---of why the two objectives collapse to a single operating point rather than a Pareto continuum is provided in Appendix~\ref{appendix:pareto_collapse}.}: video compression drives the transformation and query adaptation is its downstream consequence. Formally,
-\vspace{-0.4em}
-\begin{align*}
-v^* &\;=\; \operatorname*{arg\,min}_{v\,:\,\exists\, q,\, (v,q)\,\in\,\mathcal{A}} \mathrm{Size}(v), \\[-0.2em]
-q^* &\;=\; \operatorname*{arg\,min}_{q\,:\,(v^*, q)\,\in\,\mathcal{A}} \mathrm{Infer}(q).
-\end{align*}
+\vspace{-0.3em}
+\[
+(v^*, q^*) = \Big(\!\!\operatorname*{arg\,min}_{\substack{v\,:\,\exists\, q,\\ (v,q)\in\mathcal{A}}}\!\mathrm{Size}(v),\ \operatorname*{arg\,min}_{q\,:\,(v^*, q)\in\mathcal{A}}\!\mathrm{Infer}(q)\Big).
+\]
 
 
 \subsection{Integrating TVS into Video-LLM Workflows}
