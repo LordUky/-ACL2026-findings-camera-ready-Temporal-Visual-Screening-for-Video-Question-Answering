@@ -9,7 +9,7 @@ Under this view, any compression $(V, Q) \to (v, q)$ forms the Markov chain
 \[
 A \;\to\; (V, Q) \;\to\; (v, q),
 \]
-and the Data Processing Inequality~\citep{cover2006elements} yields
+and the Data Processing Inequality~\citep{cover2006elements} bounds the mutual information $I(\cdot\,;\cdot)$ as
 \vspace{-0.2em}
 \[
 I\big((v, q);\, A\big) \;\leq\; I\big((V, Q);\, A\big),
@@ -27,24 +27,20 @@ over the original bimodal task space (Figure~\ref{fig:tvs_task_compare}), where 
 \begin{itemize}[leftmargin=*,topsep=2pt,itemsep=1pt]
     \item \textbf{(C1) Structural Continuity.} $v$ is the concatenation of $n \geq 1$ non-overlapping contiguous subsegments of $V$:
     \vspace{-0.2em}
-    \begin{multline*}
-    v = \{F_{s_1}, \ldots, F_{e_1}, F_{s_2}, \ldots, F_{e_2}, \ldots, \\ F_{s_n}, \ldots, F_{e_n}\} \subseteq V,
-    \end{multline*}
-    with $1 \leq s_1 \leq e_n \leq T$, preserving low-level temporal integrity essential for motion, appearance, and scene dynamics.
+    \[
+    v \;=\; \bigcup\nolimits_{i=1}^{n} \{F_{s_i}, \ldots, F_{e_i}\} \;\subseteq\; V,
+    \]
+    with $1 \leq s_1 \leq e_n \leq T$, preserving low-level temporal integrity for motion, appearance, and scene dynamics.
 
     \item \textbf{(C2) Answer Sufficiency.} For any reasonable VideoQA agent $\mathcal{M}$,
     \vspace{-0.2em}
     \[
     \mathcal{M}(q, v) \;=\; \mathcal{M}(Q, V).
     \]
-    This is an instance-level strengthening of the population-level sufficient-statistic condition $I((v,q);A) = I((V,Q);A)$; the two coincide when the model family attains the information-theoretic limit, and we adopt the pointwise form for practical robustness.
+    At the population level this corresponds to the sufficient-statistic identity $I((v,q); A) = I((V,Q); A)$---the equality case of the DPI above, attained precisely when $(v,q)$ loses no $A$-relevant information. We adopt the pointwise form to enforce answer preservation \textit{model-agnostically}, for every $\mathcal{M}$ rather than only in expectation.
 \end{itemize}
 
-\noindent We denote the set of admissible pairs by
-\vspace{-0.2em}
-\[
-\mathcal{A} = \big\{\, (v, q) : v \text{ satisfies (C1)},\ \forall\,\mathcal{M},\ \mathcal{M}(q, v) = \mathcal{M}(Q, V) \,\big\}.
-\]
+\noindent Let $\mathcal{A}$ denote the set of pairs $(v, q)$ satisfying both (C1) and (C2).
 
 \paragraph{Minimality objectives.}
 \begin{itemize}[leftmargin=*,topsep=2pt,itemsep=1pt]
@@ -52,16 +48,12 @@ over the original bimodal task space (Figure~\ref{fig:tvs_task_compare}), where 
     \item \textbf{(O2) Query-side minimality.} Minimize $\mathrm{Infer}(q)$, the number of reasoning steps required to derive $A$ from $(v, q)$. For example, reasoning on \textit{``within 5\,s after event A''} incurs three steps: localizing event A, relational reasoning on \textit{``after''}, and temporal reasoning on \textit{``5\,s''}.
 \end{itemize}
 
-\paragraph{Constraint re-allocation and the collapse of the Pareto frontier.}
-\textit{A priori}, (O1) and (O2) admit a Pareto trade-off, so the optimum could span an entire frontier rather than a unique point. In TVS, however, they are not independent---they are two faces of a single underlying compression act. Each reasoning step removable from $q$ corresponds to a constraint in the original query that can be \textit{structurally pre-satisfied} by trimming $V$: rather than verifying the constraint textually, the transformation excises the non-compliant portion of the video. Consequently, every reduction in $\mathrm{Infer}(q)$ is paid for by an equivalent reduction in the span of $V$ that must be retained to remain $A$-sufficient, and vice versa. The two objectives descend in lockstep along the admissible region, and the Pareto frontier collapses to essentially a single operating point.
-
-We emphasize that this re-allocation is a \textit{mechanism-level account} of why a unique optimum exists; it does not redefine the task. The answer $A$ and the answer space are preserved throughout---no constraint is discarded, each is merely \textit{conserved across modalities}---so TVS remains a joint bimodal transformation, distinct from unimodal query relaxation or evidence-retrieval paradigms~\citep{nextgqa, cgbench}.
-
-This mechanism further justifies a \textbf{video-priority lexicographic} resolution of the bi-objective problem: video compression is the \textit{driver} of the transformation and query adaptation its downstream consequence---once $v^*$ is fixed, the remaining freedom in $q$ is exhausted by rewriting to the shortest form compatible with $v^*$. Formally,
-\vspace{-0.2em}
-\[
-\boxed{\,(v^*,\, q^*) = \Big(\!\mathop{\arg\min}_{v:\, \exists\, q,\, (v, q) \in \mathcal{A}}\! \mathrm{Size}(v),\ \mathop{\arg\min}_{q:\, (v^*, q) \in \mathcal{A}}\! \mathrm{Infer}(q)\Big).\,}
-\]
+Rather than tracing a Pareto frontier, the two objectives admit a unique solution via \textbf{video-priority lexicographic} resolution\footnote{A mechanism-level account---based on \textit{constraint re-allocation} between modalities---of why the two objectives collapse to a single operating point rather than a Pareto continuum is provided in Appendix~\ref{appendix:pareto_collapse}.}: video compression drives the transformation and query adaptation is its downstream consequence. Formally,
+\vspace{-0.4em}
+\begin{align*}
+v^* &\;=\; \operatorname*{arg\,min}_{v\,:\,\exists\, q,\, (v,q)\,\in\,\mathcal{A}} \mathrm{Size}(v), \\[-0.2em]
+q^* &\;=\; \operatorname*{arg\,min}_{q\,:\,(v^*, q)\,\in\,\mathcal{A}} \mathrm{Infer}(q).
+\end{align*}
 
 
 \subsection{Integrating TVS into Video-LLM Workflows}
