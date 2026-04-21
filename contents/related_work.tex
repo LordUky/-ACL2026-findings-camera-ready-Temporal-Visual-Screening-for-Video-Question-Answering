@@ -6,7 +6,10 @@ Video-LLMs have spurred a wave of models aimed at enhancing video understanding~
 
 % Zheyu: shortened due to space limit
 \paragraph{LLM-assisted Agentic Reasoning for VideoQA}
-Some other work proposing robust VideoQA baselines opt to explore pure-text LLM assisted frameworks or multi-agent systems for VideoQA \citep{wang2024videotreeadaptivetreebasedvideo, shang-etal-2024-traveler, VideoAgent}. These methods adopt LLM-based methods to serve as a scheduler, which implicitly fullfills the TVS objective to a significant extent. 
+Some other work proposing robust VideoQA baselines opt to explore pure-text LLM assisted frameworks or multi-agent systems for VideoQA \citep{wang2024videotreeadaptivetreebasedvideo, shang-etal-2024-traveler, VideoAgent}. These methods adopt LLM-based methods to serve as a scheduler, which implicitly fulfills the TVS objective to a significant extent.
+
+\paragraph{Information Bottleneck}
+The Information Bottleneck principle~\citep{tishby1999information, tishby2015deep} formalizes representation learning as a sufficiency--compression trade-off, extended by the variational IB~\citep{alemi2017deep} to deep models. In contrast to these latent-code formulations, TVS instantiates IB as a discrete, multimodal transformation over the original input space, yielding an interpretable artifact $(v,q)$ rather than a hidden embedding. 
 
 
 

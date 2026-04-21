@@ -2,64 +2,79 @@
 
 \subsection{Task Definition}
 \label{tvs_def}
-TVS is elegantly designed to pinpoint critical video focus without altering data formats, ensuring full procedural compatibility with any existing VideoQA and Video Instruction Tuning pipelines as a front-end adapter. Refer to Figure \ref{fig:tvs_task_compare} for illustration. Formally, given a full-length video \( V = \{F_1, F_2, \ldots, F_T\} \) consisting of \( T \) ordered frames and a natural language query \( Q \), the \textbf{Temporal Visual Screening (TVS)} task aims to output:
+Given a full-length video $V = \{F_1, F_2, \ldots, F_T\}$ of $T$ ordered frames and a natural language query $Q$, the \textbf{Temporal Visual Screening (TVS)} task produces:
 
 \begin{itemize}[leftmargin=*,noitemsep,topsep=0pt]
-    \item a reconstructed query \( q \), derived from \( Q \), and  
-    \item a new \textbf{continuous} video 
-    % $
-    % v = \{F_{s_1}, F_{s_1+1}, \ldots, F_{e_1},\ F_{s_2}, F_{s_2+1}, \ldots, F_{e_2},\ \ldots,\ F_{s_n}, F_{s_n+1}, \ldots, F_{e_n}\} \subseteq V
-    % $ 
+    \item a reconstructed query $q$, derived from $Q$, and
+    \item a \textbf{continuous} video
     \vspace{-0.3 em}
     \begin{multline*}
     v = \{F_{s_1}, F_{s_1+1}, \ldots, F_{e_1},\ F_{s_2}, F_{s_2+1}, \ldots, \\ F_{e_2},\ \ldots, F_{s_n}, F_{s_n+1}, \ldots, F_{e_n}\} \subseteq V
     \end{multline*}
-being the concatenation of \( n \) non-overlapping segments of the original video, where \( 1 \leq s_1 \leq e_n \leq T \) and \( n \geq 1\),
+    formed by concatenating $n$ non-overlapping segments of $V$, with $1 \leq s_1 \leq e_n \leq T$ and $n \geq 1$,
 \end{itemize}
 
-\noindent such that \( v \) contains the minimal but sufficient visual information to correctly answer \( q \), and preserves \textit{low-level temporal continuity} essential for motion, spatial, and object-level reasoning. Specifically, we define a function:
+\noindent such that $v$ preserves \textit{low-level temporal continuity} essential for motion, spatial, and object-level reasoning, and $(v,q)$ remains sufficient to recover the original answer. We define an endomorphic transformation
 \vspace{-0.2 em}
 \[
 \mathcal{F}_{\text{TVS}} : (V, Q) \rightarrow (v, q)
 \]
-subject to the efficacy conditions given next.
+over the same bimodal task space (Figure~\ref{fig:tvs_task_compare}), subject to the efficacy conditions given below.
 
+\subsection{Information-Theoretic View}
+\label{tvs_ib}
+We adopt a \textit{generative} view of VideoQA: the answer $A$ is an objective fact that exists independently of any particular framing, and the observed pair $(V, Q)$ is drawn conditional on $A$. TVS further processes $(V, Q)$ into a compact pair $(v, q)$, yielding the Markov chain
+\vspace{-0.2em}
+\[
+A \;\longrightarrow\; (V, Q) \;\longrightarrow\; (v, q),
+\]
+analogous to measurement invariance in the physical sciences: reformulating the observation does not alter the underlying fact. The data processing inequality thus gives
+\vspace{-0.2em}
+\[
+I\big((v,q);\,A\big) \;\leq\; I\big((V,Q);\,A\big),
+\]
+with equality iff $(v, q)$ is a \textit{sufficient statistic} for $A$. Combined with the Information Bottleneck principle~\citep{tishby1999information, tishby2015deep}, TVS seeks a compressed bimodal input that retains answer-relevant information while discarding task-irrelevant content:
+\vspace{-0.2em}
+\[
+\mathcal{L}_{\text{IB}}(v,q) \;=\; I\big((v,q);\,A\big) \;-\; \beta \cdot I\big((V,Q);\,(v,q)\big),
+\]
+where $\beta > 0$ trades answer sufficiency against input compression. In contrast to latent-code IB~\citep{alemi2017deep}, TVS produces an \textit{interpretable artifact} $(v,q)$ in the original input space, which doubles as a controllable handle for downstream reasoning.
 
-\paragraph{Efficacy conditions for TVS} 
-Maintaining both \textit{uni-modal efficacy} and \textit{cross-modal synergy}, TVS facilitates temporal visual focus by trimming out insignificant segments of the video, while \textit{synchronously} reconstructing the text query to preserve original semantic alignment. For demonstration, refer to the Appendix. The transformations applied to \( q \) and \( v \) must be tightly coupled to preserve answer consistency despite input reduction, ensuring semantic alignment and outcome equivalence between the reduced input and the original task. Formally, It must meet the following:
+\paragraph{Efficacy conditions for TVS}
+Maintaining both \textit{uni-modal efficacy} and \textit{cross-modal synergy}, TVS trims insignificant video segments while \textit{synchronously} reconstructing the text query. The transformations applied to $q$ and $v$ must be tightly coupled to preserve answer consistency under input reduction. Formally:
 
-\begin{enumerate}
-    \item \textbf{Continuity for Video Output}: \( v \) must be a temporally \textbf{contiguous} subsegment of \( V \), or a concatenation of such segments, preserving low-level visual integrity necessary for tracking motion, appearance, and scene dynamics.
+\begin{enumerate}[leftmargin=*,topsep=2pt,itemsep=1pt]
+    \item \textbf{Continuity for Video Output}: $v$ must be a temporally \textbf{contiguous} subsegment of $V$, or a concatenation of such segments, preserving low-level visual integrity for tracking motion, appearance, and scene dynamics. \textit{(Structural constraint on the feasible compression space.)}
 
-    \item \textbf{Minimal Sufficiency for Answer}: A frame \( F_t \in v \) is included \textit{if and only if} removing it would alter the model output:
-    $
-    \exists \, \delta a \text{ such that } \mathcal{M}(q, v \setminus \{F_t\}) = a + \delta a, \quad |\delta a| > \epsilon
-    $
-    where \( \epsilon \) is a task-specific confidence or semantic tolerance threshold. This guarantees that each included frame contributes non-trivially to the answer.
+    \item \textbf{Sufficiency for Answer}: $(v,q)$ must remain a sufficient statistic for $A$,
+    \[
+    I\big((v,q);\,A\big) \;=\; I\big((V,Q);\,A\big),
+    \]
+    saturating the data processing inequality. At the frame level, removing any $F_t \in v$ incurs a non-trivial change in model output: $\exists\, \delta a$ s.t.\ $\mathcal{M}(q, v\setminus\{F_t\}) = a + \delta a,\ |\delta a| > \epsilon$, where $\epsilon$ is a task-specific tolerance setting the operating $\beta$.
 
     \item \textbf{Reasoning Minimality for Query Output}:
     \[
-    q^* = \operatorname*{argmin}_{q} \, \mathrm{Infer}(q)
+    q^* \;=\; \operatorname*{argmin}_{q} \, \mathrm{Infer}(q),
     \]
-    where \( \mathrm{Infer}(q) \) denotes the number of reasoning steps needed to derive the answer from visual input.
-    For example, reasoning on the phrase ``within 5 seconds after event A'' requires three reasoning steps on the temporal axis: localization on event A, relational reasoning on ``after'', and temporal reasoning on ``5 seconds''. This ensures that \( q \) focuses on a \textit{minimal grounded fact} answerable within a concise visual span.
+    where $\mathrm{Infer}(q)$ counts reasoning steps needed to derive $A$ from visual input (e.g., ``within 5\,s after event A'' takes three: localize A, apply ``after'', bound ``5\,s''). \textit{(Query-side compression: a tractable proxy for reducing $I(Q;q)$, shifting reasoning load from the downstream model to the reconstructed problem.)}
 
-    \item \textbf{Cross-modal Synergy}: For any reasonable VideoQA agent \( \mathcal{M} \), the answer to \( q \) given \( v \) must match the answer given the full video:
+    \item \textbf{Cross-modal Synergy}: for any reasonable VideoQA agent $\mathcal{M}$,
     \[
     \forall \mathcal{M}, \quad \mathcal{M}(q, v) = \mathcal{M}(Q, V).
     \]
-    This enforces that \( v \) retains all information necessary to support the same answer as the full input, regardless of model architecture.
+    \textit{(Answer invariance across architectures, the behavioral counterpart of sufficiency.)}
 \end{enumerate}
 
-This formulation enables precise, interpretable alignment between question, answer, and visual evidence, while ensuring temporal coherence and model-agnostic consistency. Refer to Figure \ref{fig:tvs_task_figure} for more demonstrations of the TVS task.
+\paragraph{Why the Pareto frontier collapses}
+A naive reading of conditions 2 and 3 suggests a Pareto trade-off between preserving $A$-sufficiency and minimizing $\mathrm{Infer}(q)$. In practice, the two objectives are not independent: reducing $\mathrm{Infer}(q)$ by stripping query conditions that target a particular portion of the video automatically reduces the span of $V$ that must be retained to remain $A$-sufficient, and vice versa. The two objectives thus decrease in lockstep along the admissible region, and the Pareto frontier typically collapses to a single operating point that ReSimplifyIt (Section~\ref{sec:method}) converges to iteratively.
 
+We stress that this constraint re-allocation is a \textit{mechanism-level account} of why TVS admits a unique optimum, not a redefinition of the task. TVS remains a joint bimodal transformation $\mathcal{F}_{\text{TVS}}: (V, Q) \to (v, q)$ that preserves both the answer and the answer space; it is \textbf{not} query relaxation, since no constraint is discarded---all are conserved across modalities.
 
 \subsection{Integrating TVS into Video-LLM Workflows}
 
-Temporal Visual Screening (TVS) can be effectively incorporated into both the training and inference workflows of video-language models, enabling cleaner supervision, stronger alignment, and more interpretable model behavior. Below, we describe two major modes of application.
+TVS plugs into both training and inference pipelines of video-language models as a front-end adapter.
 
-\paragraph{TVS for Inference-Time Simplification in Video-LLMs} At inference, TVS acts as a lightweight pre-processing module. Given a video \( V \) and query \( Q \), it identifies a salient segment \( v \) and reconstructs a simplified query \( q \) (see Section~\ref{sec:method}). This yields a new input pair \( (v, q) \), reducing the temporal and semantic complexity the model must handle. Rather than processing the full video or ambiguous and overgeneralized instructions, the model concentrates on compact, relevant content, facilitating fine-grained temporal reasoning and direct visual grounding. This design aims to improve inference efficiency, robustness, and interpretability.
+\paragraph{TVS for Inference-Time Simplification in Video-LLMs} At inference, TVS pre-processes $(V, Q)$ into $(v, q)$ (see Section~\ref{sec:method}), reducing the temporal and semantic complexity the downstream model must handle and concentrating it on compact, task-relevant content for fine-grained temporal reasoning and direct visual grounding.
 
 \paragraph{TVS for Improving Training-Time Visual-Language Alignment}
-
-Training Video-LLMs often involves complex supervision tuples \( (V, Q, a) \), where queries may be abstract or multi-hop. TVS mitigates this by transforming them into more compact triples \( (v, q, a) \), where \( v \) is a high-utility segment and \( q \) is a grounded reformulation of the original query. This decomposition offloads off-target supervision to upstream modules, allowing the model to  specialize in two core competencies: temporal understanding and multimodal alignment.
+Video-LLM supervision tuples $(V, Q, a)$ often couple abstract or multi-hop queries with unfocused video. TVS reshapes them into compact triples $(v, q, a)$, where $v$ is a high-utility segment and $q$ is a grounded reformulation of $Q$, offloading off-target supervision to upstream modules so that the model specializes in two core competencies: temporal understanding and multimodal alignment.
