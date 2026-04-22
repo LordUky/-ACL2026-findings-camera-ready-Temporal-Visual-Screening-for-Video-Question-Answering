@@ -28,14 +28,14 @@ EMC yields four concrete benefits: (i) Training alignment: removing off-target s
 
 We present \textit{ReSimplifyIt}, a plug-and-play multi-agent framework that \underline{\textbf{ReS}}iliently \underline{\textbf{imp}}rovises and qua\underline{\textbf{lif}}ies proposals \underline{\textbf{It}}eratively. Each compression round runs a language-only Launcher that hypothesizes a trimming instruction and rewritten query (using the intrinsic cross-modal relation as a prior), a Validator that executes and critiques these plans through a Viewer module, and memory trackers for self-correction---operationalizing a competence-from-consequence~\citep{brooks1991intelligence} principle: trial execution provides constructive feedback tightening the coupling between hypothesized reasoning structure and available evidence.
 
-We further construct YouCookII-EMC, the first benchmark dedicated to evaluating EMC as a joint transformation over video and query. Benchmarking shows EMC is a non-trivial task far from solved, revealing a key bottleneck for downstream VideoQA reasoning and deserving independent study.
+We further construct EMCompress, the first benchmark dedicated to evaluating EMC as a joint transformation over video and query. Benchmarking shows EMC is a non-trivial task far from solved, revealing a key bottleneck for downstream VideoQA reasoning and deserving independent study.
 
 To our knowledge, ours is the first work to formally recognize that grounding and trimming a video creates a semantic mismatch with complex, context-dependent queries, to formalize the task on this premise, and to extensively explore temporal filtering within the Video-LLM framework. Our results show that EMC not only improves inference-time performance but also enables more structured and effective training through finer-grained multimodal alignment, paving the way for scalable, interpretable, cognitively-inspired video-language understanding systems.
 
 The main contributions of this work are summarized below:
 
 \begin{itemize}[leftmargin=*,topsep=-1pt,itemsep=0ex]
-\item We propose endomorphic multimodal compression (EMC), a novel cognitively-inspired, information-theoretically framed task that guides task-aware reasoning structure filtering and addresses a key bottleneck in multi-modal alignment. We also release YouCookII-EMC, a benchmark with 238.2 hours of video and 2{,}754 questions.
+\item We propose endomorphic multimodal compression (EMC), a novel cognitively-inspired, information-theoretically framed task that guides task-aware reasoning structure filtering and addresses a key bottleneck in multi-modal alignment. We also release EMCompress, a benchmark with 238.2 hours of video and 2{,}754 questions.
 \item We introduce ReSimplifyIt, the first baseline for the EMC task: a model-agnostic plug-in compatible with \textbf{any} existing videoQA or instruction-tuning pipeline.
 \item We quantitatively evaluate EMC in VideoQA and Video Instruction Tuning, where our method delivers over $10\%$ and $5\%$ absolute gains at inference and training, respectively, across multiple strong baselines and benchmarks.
 \end{itemize}

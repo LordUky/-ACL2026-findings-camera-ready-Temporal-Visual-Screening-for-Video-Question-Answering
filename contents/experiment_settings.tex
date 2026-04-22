@@ -39,7 +39,7 @@
     \label{tab:emc_main_reduced_text}
   \end{subtable}
 
-  \caption{Stage-1 evaluation results on YouCookII-EMC dataset.}
+  \caption{Stage-1 evaluation results on EMCompress dataset.}
   \label{tab:stage1_eval}
 \end{table*}
 
@@ -50,7 +50,7 @@
 \small
 \begin{tabular}{l|c|cc|cc|cc|cc|cc|cc|cc}
 \toprule
-\multirow{2}{*}{\textbf{Method}} & \multirow{2}{*}{\textbf{Size}} & \multicolumn{2}{c|}{\textbf{ActivityNetQA}} & \multicolumn{2}{c|}{\textbf{YC2EMC}} & \multicolumn{2}{c|}{\textbf{EgoSchema}} & \multicolumn{2}{c|}{\textbf{LVBench}} & \multicolumn{2}{c|}{\textbf{MLVU}} & \multicolumn{2}{c|}{\textbf{Video-MME}} & \multicolumn{2}{c}{\textbf{NExT-OE}} \\
+\multirow{2}{*}{\textbf{Method}} & \multirow{2}{*}{\textbf{Size}} & \multicolumn{2}{c|}{\textbf{ActivityNetQA}} & \multicolumn{2}{c|}{\textbf{EMCompress}} & \multicolumn{2}{c|}{\textbf{EgoSchema}} & \multicolumn{2}{c|}{\textbf{LVBench}} & \multicolumn{2}{c|}{\textbf{MLVU}} & \multicolumn{2}{c|}{\textbf{Video-MME}} & \multicolumn{2}{c}{\textbf{NExT-OE}} \\
 & & w/emc & w/o & w/emc & w/o & w/emc & w/o & w/emc & w/o & w/emc & w/o & w/emc & w/o & w/emc & w/o \\
 \midrule
 Video-ChatGPT \citep{maaz-etal-2024-video} & 7B & \textbf{58.5} & 50.5 & \textbf{38.9} & 28.91 & \textbf{29.2} & 23.0 & \textbf{23.5} & 22.9 & \textbf{22.5} & 18.6 & \textbf{31.1} & 29.5 & \textbf{49.8} & 41.5 \\
@@ -87,46 +87,46 @@ GPT-4-turbo \citep{gpt4} & - & \textbf{77.1} & 74.34 & \textbf{79.39} & 70.61 & 
   \small
   \begin{tabular}{cc|cc|cc|cc|cc}
     \toprule
-    \multicolumn{2}{c|}{\textbf{Method}} & \multicolumn{2}{c|}{\textbf{ActivityNetQA}} & \multicolumn{2}{c|}{\textbf{YouCookII-EMC}} & \multicolumn{2}{c|}{\textbf{NExT-QA}} & \multicolumn{2}{c}{\textbf{NExT-OE}} \\
+    \multicolumn{2}{c|}{\textbf{Method}} & \multicolumn{2}{c|}{\textbf{ActivityNetQA}} & \multicolumn{2}{c|}{\textbf{EMCompress}} & \multicolumn{2}{c|}{\textbf{NExT-QA}} & \multicolumn{2}{c}{\textbf{NExT-OE}} \\
     % Method column headers merged into one
     & & w/emc & w/o & w/emc & w/o & w/emc & w/o & w/emc & w/o \\
     \midrule
     \multirow{3}{*}{Video-ChatGPT} 
-      & w/o tvs        & 57.4 & 49.8 & 45.1 & 35.6 & 48.6 & 41.3 & 46.2 & 40.0 \\
-      & w/ tvs (gt)    & 62.7 & 54.4 & 49.8 & 38.9 & 51.0 & 45.7 & 49.2 & 43.5 \\
-      & w/ tvs (pred)  & 60.0 & 51.3 & 48.2 & 37.1 & 49.6 & 44.3 & 48.7 & 41.9 \\
+      & w/o emc        & 57.4 & 49.8 & 45.1 & 35.6 & 48.6 & 41.3 & 46.2 & 40.0 \\
+      & w/ emc (gt)    & 62.7 & 54.4 & 49.8 & 38.9 & 51.0 & 45.7 & 49.2 & 43.5 \\
+      & w/ emc (pred)  & 60.0 & 51.3 & 48.2 & 37.1 & 49.6 & 44.3 & 48.7 & 41.9 \\
     \midrule
     \multirow{3}{*}{Video-LLaVA} 
-      & w/o tvs        & 53.9 & 45.1 & 46.3 & 35.9 & 50.2 & 47.8 & 47.0 & 39.1 \\
-      & w/ tvs (gt)    & 57.0 & 48.9 & 52.6 & 41.6 & 55.7 & 50.8 & 52.1 & 44.9 \\
-      & w/ tvs (pred)  & 54.2 & 46.9 & 48.1 & 37.4 & 51.0 & 49.3 & 50.7 & 41.8 \\
+      & w/o emc        & 53.9 & 45.1 & 46.3 & 35.9 & 50.2 & 47.8 & 47.0 & 39.1 \\
+      & w/ emc (gt)    & 57.0 & 48.9 & 52.6 & 41.6 & 55.7 & 50.8 & 52.1 & 44.9 \\
+      & w/ emc (pred)  & 54.2 & 46.9 & 48.1 & 37.4 & 51.0 & 49.3 & 50.7 & 41.8 \\
     \midrule
     \multirow{3}{*}{ChatUniVi} 
-      & w/o tvs        & 63.2 & 50.0 & 62.4 & 57.4 & --   & --   & 29.0 & 22.5 \\
-      & w/ tvs (gt)    & 65.6 & 54.4 & 67.8 & 63.8 & --   & --   & 34.3 & 26.0 \\
-      & w/ tvs (pred)  & 64.9 & 52.6 & 62.8 & 61.6 & --   & --   & 32.1 & 24.0 \\
+      & w/o emc        & 63.2 & 50.0 & 62.4 & 57.4 & --   & --   & 29.0 & 22.5 \\
+      & w/ emc (gt)    & 65.6 & 54.4 & 67.8 & 63.8 & --   & --   & 34.3 & 26.0 \\
+      & w/ emc (pred)  & 64.9 & 52.6 & 62.8 & 61.6 & --   & --   & 32.1 & 24.0 \\
     \bottomrule
   \end{tabular}
   }
-  \caption{Evaluation results of EMC-guided training by downstream inference. On the rows, \textit{w/o tvs}, \textit{w/emc (gt)}, and \textit{w/emc (pred)} indicates training with vanilla YouCookII-EMC dataset, training with ground truth EMC labels, and training with the predicted EMC results, respectively; on the columns, \textit{w/o tvs} and \textit{w/emc} indicates the inference mode.
+  \caption{Evaluation results of EMC-guided training by downstream inference. On the rows, \textit{w/o emc}, \textit{w/emc (gt)}, and \textit{w/emc (pred)} indicates training with vanilla EMCompress dataset, training with ground truth EMC labels, and training with the predicted EMC results, respectively; on the columns, \textit{w/o emc} and \textit{w/emc} indicates the inference mode.
   }
   \label{stage3_eval}
 \end{table*}
 
 \addressed{\uky{Results are subject to small changes. }}
 
-\subsection{YouCookII-EMC benchmark}
+\subsection{EMCompress benchmark}
 \label{yc2emc}
 As EMC is a new task, few benchmarks is capable of performing the evaluation. While some studies \citep{tvqa, groundedmultihopvideoqalongform, tvqa+} have explored grounded VideoQA which may be mistakenly seen as equivalent, they mainly focus on improving visual evidence. See Appendix \ref{appendix: related_work} for details. The synchronous update of video and query inputs in EMC naturally resolves any potential semantic mismatch, maximally enhancing generalizability and adaptability of our work.
 
-To bridge this gap, we introduce the YouCookII-EMC benchmark, which provides both EMC and standard VideoQA labels. Built upon the YouCookII dataset \citep{ZhXuCoAAAI18}, it comprises 2,754 datapoints split into training, validation, and test sets (roughly 7:2:1). This dual-task benchmark enables unified evaluation of both EMC and VideoQA. Refer to Appendix~\ref{yc2emc_appendix} for more details.
+To bridge this gap, we introduce the EMCompress benchmark, which provides both EMC and standard VideoQA labels. Built upon the YouCookII dataset \citep{ZhXuCoAAAI18}, it comprises 2,754 datapoints split into training, validation, and test sets (roughly 7:2:1). This dual-task benchmark enables unified evaluation of both EMC and VideoQA. Refer to Appendix~\ref{yc2emc_appendix} for more details.
 
 
 
 \subsection{Datasets and Benchmarks}
 We conduct the evaluation from three aspects.
 
-Firstly, we evaluate the quality of the EMC process on \textbf{YouCookII-EMC} (Section~\ref{yc2emc}). Next, we examine the impact of EMC on downstream VideoQA performance across the following benchmarks: \textbf{YouCookII-EMC}, which supports evaluation of both the EMC process and VideoQA performance; \textbf{ActivityNet-QA}~\citep{yu2019activityqa}, \textbf{NExT-OE}~\citep{xiao2021next}, \textbf{Video-MME}~\citep{videomme}, \textbf{MLVU}~\citep{mlvu}, \textbf{LVBench}\citep{lvbench}, and \textbf{EgoSchema}~\citep{egoschema}. Lastly, we investigate the role of EMC in video instruction tuning by fine-tuning Video-LLM baselines on \textbf{YouCookII-EMC}, and comparing their downstream performance across various benchmarks. For \textbf{NExT-QA}~\citep{xiao2021next}, we conduct open-ended generation during inference and map predictions to MCQ format using GPT-3.5, ensuring consistent evaluation across baselines and benchmarks (see the Appendix for details).
+Firstly, we evaluate the quality of the EMC process on \textbf{EMCompress} (Section~\ref{yc2emc}). Next, we examine the impact of EMC on downstream VideoQA performance across the following benchmarks: \textbf{EMCompress}, which supports evaluation of both the EMC process and VideoQA performance; \textbf{ActivityNet-QA}~\citep{yu2019activityqa}, \textbf{NExT-OE}~\citep{xiao2021next}, \textbf{Video-MME}~\citep{videomme}, \textbf{MLVU}~\citep{mlvu}, \textbf{LVBench}\citep{lvbench}, and \textbf{EgoSchema}~\citep{egoschema}. Lastly, we investigate the role of EMC in video instruction tuning by fine-tuning Video-LLM baselines on \textbf{EMCompress}, and comparing their downstream performance across various benchmarks. For \textbf{NExT-QA}~\citep{xiao2021next}, we conduct open-ended generation during inference and map predictions to MCQ format using GPT-3.5, ensuring consistent evaluation across baselines and benchmarks (see the Appendix for details).
 
 \subsection{Implementation Details}
 We provide implementation details in Appendix \ref{appendix:imp}.
@@ -144,4 +144,4 @@ Integrating EMC as a front-end module into existing VideoQA agents yields a nove
 
 
 \paragraph{EMC-guided training}
-Following Section \ref{subsection:emc-guided-training}, we performed video instruction tuning on Video-ChatGPT \citep{maaz-etal-2024-video}, Video-LLaVA \citep{lin2023video}, and ChatUniVi \citep{chatunivi} on YouCookII-EMC. We kept the LLM backbone frozen, and only tuned their multimodal projectors.
+Following Section \ref{subsection:emc-guided-training}, we performed video instruction tuning on Video-ChatGPT \citep{maaz-etal-2024-video}, Video-LLaVA \citep{lin2023video}, and ChatUniVi \citep{chatunivi} on EMCompress. We kept the LLM backbone frozen, and only tuned their multimodal projectors.

@@ -3,7 +3,7 @@
 
 We highlight the importance of the EMC task, as it addresses a core bottleneck in VideoQA by enabling models to focus on semantically aligned moments in long videos by abstracting task-level semantics and guiding modality-aware information filtering, which in turn enhances multi-modal alignment. In this section, we reveal its importance through: (1) using ground-truth EMC significantly boosts performance (e.g., +7.3\% relative gain in Table \ref{stage3_eval}), showing its potential as a key supervision signal; (2) current methods fail to solve EMC effectively (Table \ref{tab:stage1_eval}), calling for dedicated solutions. These motivate our design of ReSimplifyIt as a plug-and-play approach to this essential task.
 
-\paragraph{Endomorphic Multimodal Compression} Our ReSimplifyIt framework outperform both baselines significantly, on every metric and subset of our YouCookII-EMC benchmark. On the average performance of the whole test set of YouCookII-EMC, ReSimplifyIt achieved an mIoU score higher than 300\% of the baselines' performance. For query reshaping, our proposed framework also achieved notably good performance. Refer to Table \ref{tab:stage1_eval} and Table \ref{tab:stage1_eval_appendix} for results. We provide the prompt in Appendix \ref{prompts}.
+\paragraph{Endomorphic Multimodal Compression} Our ReSimplifyIt framework outperform both baselines significantly, on every metric and subset of our EMCompress benchmark. On the average performance of the whole test set of EMCompress, ReSimplifyIt achieved an mIoU score higher than 300\% of the baselines' performance. For query reshaping, our proposed framework also achieved notably good performance. Refer to Table \ref{tab:stage1_eval} and Table \ref{tab:stage1_eval_appendix} for results. We provide the prompt in Appendix \ref{prompts}.
 
 
 \subparagraph{Ablation Study of ReSimplifyIt Framework}
@@ -14,7 +14,7 @@ We conduct ablation study on ReSimplifyIt framework to evaluate the effectivenes
 \paragraph{EMC guided inference}
 As shown in Table \ref{stage2_eval} and Table \ref{stage2_eval_appendix}, nearly all baselines - ranging from open source models of different sizes and architectures to proprietary models - saw solid absolute performance gain, suggesting that Video-LLMs largely suffer from superfluous cognition noise. The \textbf{consistent performance gains across all benchmarks} underscore the universality of this general reasoning load optimization problem across diverse tasks and scenarios. In contrast, both LLM-assisted reasoning frameworks saw smaller gain. We hypothesize that the design and implementation of these frameworks have intrinsically incorporated the EMC process, by leveraging strong reasoning ability of external LLMs or multi-turn interaction.
 
-\paragraph{EMC guided training} All checkpoints trained on ground truth EMC labels achieved stable performance gain over their counterparts trained on the vanilla YouCookII-EMC benchmark, which performance gain of the checkpoints trained on the predicted EMC output of ReSimplifyIt framework were weaker. We argue that EMC-guided training benefits Video-LLMs better, particularly when faced with untrimmed videos and complex text instructions requiring multi-hop reasoning. Refer to Table \ref{stage3_eval} for further details.
+\paragraph{EMC guided training} All checkpoints trained on ground truth EMC labels achieved stable performance gain over their counterparts trained on the vanilla EMCompress benchmark, which performance gain of the checkpoints trained on the predicted EMC output of ReSimplifyIt framework were weaker. We argue that EMC-guided training benefits Video-LLMs better, particularly when faced with untrimmed videos and complex text instructions requiring multi-hop reasoning. Refer to Table \ref{stage3_eval} for further details.
 
 
 
@@ -35,7 +35,7 @@ As shown in Table \ref{stage2_eval} and Table \ref{stage2_eval_appendix}, nearly
   
 %   \resizebox{\linewidth}{!}{\begin{tabular}{c|cccccccc}
 %     \toprule
-%     \textbf{\multirow{3}{*}{Method}} & \multicolumn{8}{c}{YouCookII-EMC} \\ 
+%     \textbf{\multirow{3}{*}{Method}} & \multicolumn{8}{c}{EMCompress} \\ 
 %     & \multicolumn{2}{c}{Trr.} & \multicolumn{2}{c}{Tfu.} & \multicolumn{2}{c}{Cmb.} & \multicolumn{2}{c}{Avg.} \\ 
 %     & w/emc & w/o & w/emc & w/o & w/emc & w/o & w/emc & w/o \\
 %     \midrule 
