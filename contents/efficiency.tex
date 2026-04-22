@@ -1,19 +1,19 @@
 \section{Efficiency Analysis}
 \label{sec:efficiency}
 
-We now quantify the practical overhead of the TVS screening loop against the savings it yields downstream. To remain comparable across hardware, API endpoints, and network conditions, we report \textit{hardware-agnostic proxies}---LLM/tool/caption call counts, output tokens, duration reduction, and screening success rate---together with closed-loop metrics under realistic frame budgets.
+We now quantify the practical overhead of the EMC compression loop against the savings it yields downstream. To remain comparable across hardware, API endpoints, and network conditions, we report \textit{hardware-agnostic proxies}---LLM/tool/caption call counts, output tokens, duration reduction, and compression success rate---together with closed-loop metrics under realistic frame budgets.
 
-\paragraph{Cost drivers and screening effectiveness.}
-For each sample we record the number of external LLM turns, tool invocations, total captions, and output tokens, together with the duration ratios $\mathrm{DurAll} = \mathbb{E}[|v|/|V|]$ and $\mathrm{DurScrn}$ (restricted to successfully screened samples), and $\mathrm{Screen\%}$, the fraction of samples for which $\mathcal{F}_{\mathrm{TVS}}(V,Q) \ne (V,Q)$. See Appendix~\ref{appendix:efficiency_full} (Tables~\ref{tab:cost_drivers_simple_app}, \ref{tab:cost_drivers_full_app}, and~\ref{tab:cost_full_breakdown}) for per-dataset values and the full per-source caption breakdown. ReSimplifyIt-simple averages only ${\sim}22$ captions, $3$--$10$ LLM calls, and $300$--$1{,}500$ output tokens per sample, succeeding on $94.4\%$--$100\%$ of samples across all seven benchmarks. The full multi-agent ReSimplifyIt uses more resources due to its iterative refinement, with roughly half of its captions pre-loaded in agent prompts and the rest fetched via the Viewer's tools. Both variants reduce videos to a small fraction of their original duration on successfully screened samples---down to $1.9\%$ (simple) and $4.8\%$ (full) on LVBench---with compression strongest on the longest benchmarks.
+\paragraph{Cost drivers and compression effectiveness.}
+For each sample we record the number of external LLM turns, tool invocations, total captions, and output tokens, together with the duration ratios $\mathrm{DurAll} = \mathbb{E}[|v|/|V|]$ and $\mathrm{DurScrn}$ (restricted to successfully compressed samples), and $\mathrm{Compress\%}$, the fraction of samples for which $\mathcal{F}_{\mathrm{EMC}}(V,Q) \ne (V,Q)$. See Appendix~\ref{appendix:efficiency_full} (Tables~\ref{tab:cost_drivers_simple_app}, \ref{tab:cost_drivers_full_app}, and~\ref{tab:cost_full_breakdown}) for per-dataset values and the full per-source caption breakdown. ReSimplifyIt-simple averages only ${\sim}22$ captions, $3$--$10$ LLM calls, and $300$--$1{,}500$ output tokens per sample, succeeding on $94.4\%$--$100\%$ of samples across all seven benchmarks. The full multi-agent ReSimplifyIt uses more resources due to its iterative refinement, with roughly half of its captions pre-loaded in agent prompts and the rest fetched via the Viewer's tools. Both variants reduce videos to a small fraction of their original duration on successfully compressed samples---down to $1.9\%$ (simple) and $4.8\%$ (full) on LVBench---with compression strongest on the longest benchmarks.
 
 \paragraph{Closing the loop under fixed frame budgets.}
-A naive comparison via the count of downstream frames is misleading: a fixed budget of $K$ frames sampled uniformly over a long video is extremely sparse and may under-cover the evidence, while the same $K$ frames concentrated on the screened segment yield much denser coverage. To make this precise, we define
+A naive comparison via the count of downstream frames is misleading: a fixed budget of $K$ frames sampled uniformly over a long video is extremely sparse and may under-cover the evidence, while the same $K$ frames concentrated on the compressed segment yield much denser coverage. To make this precise, we define
 \begin{align*}
 \mathrm{DensAmp} &= \mathbb{E}\!\left[\frac{1}{\mathrm{DurRatio}}\right]\!, \\
 \mathrm{EquivFr}(K) &= K \cdot \mathrm{DensAmp}, \\
 \mathrm{CostRatio}(K) &= \frac{K + \mathrm{TotalCap}}{\mathrm{EquivFr}(K)}.
 \end{align*}
-Here $\mathrm{DensAmp}$ captures how much denser downstream sampling becomes after screening: $K$ post-screening frames are equivalent to $\mathrm{EquivFr}(K)$ frames uniformly sampled over the original video. $\mathrm{CostRatio}(K)$ then expresses the total visual sampling cost ($K + \mathrm{TotalCap}$) as a fraction of the dense-sampling cost needed to reach the same evidence density. A lower $\mathrm{CostRatio}$ therefore means TVS achieves the same effective evidence density at a smaller fraction of the dense-sampling cost: $\mathrm{CostRatio}{=}0.1$ means the no-TVS baseline would incur $10\times$ the frame-sampling cost \emph{to reach the same evidence density}. We also report the output-token cost of each $1\%$ reduction in video duration,
+Here $\mathrm{DensAmp}$ captures how much denser downstream sampling becomes after compression: $K$ post-compression frames are equivalent to $\mathrm{EquivFr}(K)$ frames uniformly sampled over the original video. $\mathrm{CostRatio}(K)$ then expresses the total visual sampling cost ($K + \mathrm{TotalCap}$) as a fraction of the dense-sampling cost needed to reach the same evidence density. A lower $\mathrm{CostRatio}$ therefore means EMC achieves the same effective evidence density at a smaller fraction of the dense-sampling cost: $\mathrm{CostRatio}{=}0.1$ means the no-EMC baseline would incur $10\times$ the frame-sampling cost \emph{to reach the same evidence density}. We also report the output-token cost of each $1\%$ reduction in video duration,
 \[
 \mathrm{OutTok/1\%Red} = \frac{\mathbb{E}[\#\mathrm{OutTok}]}{(1 - \mathbb{E}[\mathrm{DurScrn}])\cdot 100}.
 \]
@@ -31,7 +31,7 @@ Here $\mathrm{DensAmp}$ captures how much denser downstream sampling becomes aft
       & & & $K{=}8$ & $K{=}16$ & $K{=}32$ & $K{=}100$ \\
       \midrule
       ActivityNet-QA  & 25.0$\times$  & 3.8  & 0.15 & 0.09 & 0.07 & 0.05 \\
-      YouCookII-TVS   & 29.7$\times$  & 3.9  & 0.13 & 0.08 & 0.06 & 0.04 \\
+      YouCookII-EMC   & 29.7$\times$  & 3.9  & 0.13 & 0.08 & 0.06 & 0.04 \\
       NExT-OE           & 20.7$\times$  & 5.2  & 0.19 & 0.12 & 0.08 & 0.06 \\
       EgoSchema       & 6.3$\times$   & 6.0  & 0.59 & 0.38 & 0.27 & 0.19 \\
       LVBench         & 320.7$\times$ & 15.1 & 0.01 & 0.01 & 0.01 & 0.00 \\
@@ -54,7 +54,7 @@ Here $\mathrm{DensAmp}$ captures how much denser downstream sampling becomes aft
       & & & $K{=}8$ & $K{=}16$ & $K{=}32$ & $K{=}100$ \\
       \midrule
       ActivityNet-QA  & 65.2$\times$  & 39.6 & 0.18 & 0.10 & 0.06 & 0.03 \\
-      YouCookII-TVS   & 14.7$\times$  & 25.5 & 0.70 & 0.38 & 0.23 & 0.12 \\
+      YouCookII-EMC   & 14.7$\times$  & 25.5 & 0.70 & 0.38 & 0.23 & 0.12 \\
       NExT-OE           & 12.3$\times$  & 34.9 & 0.83 & 0.45 & 0.27 & 0.14 \\
       EgoSchema       & 25.8$\times$  & 77.3 & 0.67 & 0.36 & 0.20 & 0.09 \\
       LVBench         & 852.8$\times$ & 38.5 & 0.02 & 0.01 & 0.01 & 0.00 \\
@@ -66,9 +66,9 @@ Here $\mathrm{DensAmp}$ captures how much denser downstream sampling becomes aft
     \caption{ReSimplifyIt (full).}
     \label{tab:costratio_full}
   \end{subtable}
-  \caption{Density amplification (DensAmp), output-token cost per $1\%$ of video-length reduction (OT/1\%), and visual CostRatio under four downstream frame budgets $K$. Statistics are averaged over successfully screened samples.}
+  \caption{Density amplification (DensAmp), output-token cost per $1\%$ of video-length reduction (OT/1\%), and visual CostRatio under four downstream frame budgets $K$. Statistics are averaged over successfully compressed samples.}
   \label{tab:costratio}
 \end{table}
 
 \paragraph{Density amplification and end-to-end cost.}
-Table~\ref{tab:costratio} quantifies how the screening overhead is repaid by concentrated downstream sampling. ReSimplifyIt-simple achieves $6.3\times$--$320.7\times$ density amplification; on LVBench, $8$ frames sampled from the screened segment match the temporal density of $2{,}566$ frames sampled uniformly over the full video. The full ReSimplifyIt reaches $12.3\times$--$852.8\times$ on successfully screened samples, with output-token costs of $3.8$--$15.1$ tokens per $1\%$ duration reduction (simple) and $25.5$--$77.3$ (full). At $K{=}8$, the simple variant's $\mathrm{CostRatio}\leq 0.19$ on $6$ of $7$ datasets (LVBench reaching $0.01$, a ${\sim}100\times$ reduction); the full variant reports $\mathrm{CostRatio}\in[0.02, 0.18]$ on the long-video benchmarks where it is most effective. As $K$ grows to $16, 32, 100$, $\mathrm{CostRatio}$ decreases monotonically across all datasets, indicating that TVS becomes \emph{increasingly} cost-effective as downstream Video-LLMs adopt denser frame sampling. Combined with the accuracy gains of the previous section, TVS is a practically deployable front-end whose three instantiations (Appendix~\ref{ablations}) further offer an explicit performance--cost spectrum.
+Table~\ref{tab:costratio} quantifies how the compression overhead is repaid by concentrated downstream sampling. ReSimplifyIt-simple achieves $6.3\times$--$320.7\times$ density amplification; on LVBench, $8$ frames sampled from the compressed segment match the temporal density of $2{,}566$ frames sampled uniformly over the full video. The full ReSimplifyIt reaches $12.3\times$--$852.8\times$ on successfully compressed samples, with output-token costs of $3.8$--$15.1$ tokens per $1\%$ duration reduction (simple) and $25.5$--$77.3$ (full). At $K{=}8$, the simple variant's $\mathrm{CostRatio}\leq 0.19$ on $6$ of $7$ datasets (LVBench reaching $0.01$, a ${\sim}100\times$ reduction); the full variant reports $\mathrm{CostRatio}\in[0.02, 0.18]$ on the long-video benchmarks where it is most effective. As $K$ grows to $16, 32, 100$, $\mathrm{CostRatio}$ decreases monotonically across all datasets, indicating that EMC becomes \emph{increasingly} cost-effective as downstream Video-LLMs adopt denser frame sampling. Combined with the accuracy gains of the previous section, EMC is a practically deployable front-end whose three instantiations (Appendix~\ref{ablations}) further offer an explicit performance--cost spectrum.

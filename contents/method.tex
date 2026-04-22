@@ -1,15 +1,15 @@
 
-%\section{Formulation of Temporal Visual Screening}
-%\label{TemporalVisualScreening}
+%\section{Formulation of Endomorphic Multimodal Compression}
+%\label{EndomorphicMultimodalCompression}
 
 %\subsection{Task Definition}
-%We formally define the task of Temporal Visual Screening (TVS) as identifying the most information-dense segments of a video that are essential for \textbf{answering} a given text query while also synchronously simplifying the query to its most direct and interpretable form. Ideally, this appraoch ensures that the query and video is closely aligned with each other.
+%We formally define the task of Endomorphic Multimodal Compression (EMC) as identifying the most information-dense segments of a video that are essential for \textbf{answering} a given text query while also synchronously simplifying the query to its most direct and interpretable form. Ideally, this appraoch ensures that the query and video is closely aligned with each other.
 
 
 
 %\section{Method}
 
-\jiateng{I feel the best way to present this is that we first have a section enhancing that 'TVS is the bottleneck of current Video-LLMs', say we assume that TVS tasks can be perfectly resolved, we show a table where model performance can be significantly boosted. However, we also show that current appraoches does not resolve TVS well. We use this section to enhance the importance of the TVS task itself, before coming to an approach that 'solves TVS' } \uky{added leading words for eval results section, to proper refer to the tables}
+\jiateng{I feel the best way to present this is that we first have a section enhancing that 'EMC is the bottleneck of current Video-LLMs', say we assume that EMC tasks can be perfectly resolved, we show a table where model performance can be significantly boosted. However, we also show that current appraoches does not resolve EMC well. We use this section to enhance the importance of the EMC task itself, before coming to an approach that 'solves EMC' } \uky{added leading words for eval results section, to proper refer to the tables}
 
 
 \section{Method}
@@ -28,11 +28,11 @@
 \addressed{\jiateng{At the same time, the current intro to the framework is way too long. Now it takes up tp 4 pages, we need to shorted this to at most 2 pages (including your algorithms.) We need writings to emphazies on the training, and derive some qualitative analysis for both stages.}}
 
 \subsection{ReSimplifyIt Framework}\yuji{section 3.1 is much clearer than section 2. Could you write section 2.1 in this style?}
-Drawing inspirations from \textit{dynamic and interactive attention deployment} \citep{FITNO1, GS2.0NO2} and humans' information screening process by dragging the video's progress bar, we propose our multi-agent ReSimplifyIt framework. The framework is composed of three main agentic components: the Launcher, the Validator, and the Viewer, accompanied by two extra helper modules as memory trackers: the Failure History and the Success History. For implementation details, please refer to Section \ref{sec:experiments}. We denote $\{(v_r, q_r)|1 \leq r \leq R\}$ as the whole TVS process, where $v_r, q_r$ represents the output video clip and question of the $r$th round, respectively, and $R$ sets the maximum number of rounds. Refer to Algorithm \ref{alg_tvs} for the complete algorithm of our TVS process performed by our ReSimplifyIt framework, and Figure \ref{fig:workflow_figure} for a snapshot demonstration. 
+Drawing inspirations from \textit{dynamic and interactive attention deployment} \citep{FITNO1, GS2.0NO2} and humans' information compression process by dragging the video's progress bar, we propose our multi-agent ReSimplifyIt framework. The framework is composed of three main agentic components: the Launcher, the Validator, and the Viewer, accompanied by two extra helper modules as memory trackers: the Failure History and the Success History. For implementation details, please refer to Section \ref{sec:experiments}. We denote $\{(v_r, q_r)|1 \leq r \leq R\}$ as the whole EMC process, where $v_r, q_r$ represents the output video clip and question of the $r$th round, respectively, and $R$ sets the maximum number of rounds. Refer to Algorithm \ref{alg_emc} for the complete algorithm of our EMC process performed by our ReSimplifyIt framework, and Figure \ref{fig:workflow_figure} for a snapshot demonstration. 
 
-\paragraph{Initiating a TVS Round: Launcher drafting a video trimming instruction}
+\paragraph{Initiating an EMC Round: Launcher drafting a video trimming instruction}
 
-The TVS process unfolds over iterative rounds, akin to how humans drag the progress bar multiple times based solely on empirical surmise before actually viewing the video content. In each round~$r$, a \textbf{Launcher} module generates a trimming instruction~$i_r$ and a revised query~$q_r$ as a trial, where the trimming instruction may only contain \textit{high-level} semantics yielding a declarative goal (e.g. ``keep the clip after event X'' instead of ``clip([5s,10s])''), based solely on the previous query~$q_{r-1}$, without vision access. This trial-based methodology strikes an effective balance between performance and efficiency as the inherent semantic relevance between the query and video input can thereby serve as a prior to enabling plausible instruction generation without video access.
+The EMC process unfolds over iterative rounds, akin to how humans drag the progress bar multiple times based solely on empirical surmise before actually viewing the video content. In each round~$r$, a \textbf{Launcher} module generates a trimming instruction~$i_r$ and a revised query~$q_r$ as a trial, where the trimming instruction may only contain \textit{high-level} semantics yielding a declarative goal (e.g. ``keep the clip after event X'' instead of ``clip([5s,10s])''), based solely on the previous query~$q_{r-1}$, without vision access. This trial-based methodology strikes an effective balance between performance and efficiency as the inherent semantic relevance between the query and video input can thereby serve as a prior to enabling plausible instruction generation without video access.
 
 Akin to human landing on undesired segments after dragging the progress bar, we equip the Launcher module with self-correction based adaptive refinement mechanisms to tackle rare failure cases and ensure correctness. Specifically, we maintain two memory tracker modules: \textbf{Success History (SH)} and \textbf{Failure History (FH)}. A successful trial is added to $SH$ and terminates the round; otherwise, it is recorded in $FH$ and retriggers the Launcher with updated feedback.
 
@@ -99,20 +99,20 @@ This lightweight yet effective three-stage design achieves fine-grained temporal
 Algorithms of the keyframe extraction and localization stages are provided in appendix \ref{appendix_viewer}.
 
 
-\subsection{TVS-guided inference}
-\label{subsection:tvs-guided-inference}
+\subsection{EMC-guided inference}
+\label{subsection:emc-guided-inference}
 
-Attributed to its endomorphic property, TVS can serve as a plug-and-play adapter process for any VideoQA pipeline, including both inference and training stages. Given the input question $Q$ and video $V$, TVS-guided inference is conducted as:
+Attributed to its endomorphic property, EMC can serve as a plug-and-play adapter process for any VideoQA pipeline, including both inference and training stages. Given the input question $Q$ and video $V$, EMC-guided inference is conducted as:
 
 $$ response = VideoQA(v, q) $$
-$$ v, q = TVS(V, Q) $$
+$$ v, q = \mathcal{F}_{\text{EMC}}(V, Q) $$
 
-where $VideoQA$ can be \emph{any} VideoQA pipeline, including video-LLMs, LLM-assisted pipelines, or any others alternatives, and $TVS()$ stands for the Temporal Visual Screening process. 
+where $VideoQA$ can be \emph{any} VideoQA pipeline, including video-LLMs, LLM-assisted pipelines, or any others alternatives, and $\mathcal{F}_{\text{EMC}}$ stands for the Endomorphic Multimodal Compression process. 
 
 
-\subsection{TVS-guided training}
-\label{subsection:tvs-guided-training}
-TVS can also be applied to training stage to purify supervision signal. Given input question $Q$, input video $V$, and ground truth answer $a$, we compute the likelihood during the TVS-guided training as:
+\subsection{EMC-guided training}
+\label{subsection:emc-guided-training}
+EMC can also be applied to training stage to purify supervision signal. Given input question $Q$, input video $V$, and ground truth answer $a$, we compute the likelihood during the EMC-guided training as:
 
 \vspace{-2em}
 
@@ -147,7 +147,7 @@ $$
 
 $$ \mathbf{X}_\mathrm{A}, \mathbf{X}_\mathrm{Q}, \mathbf{X}_\mathrm{V} = f_t(a), f_t(q), f_v(v)$$
 
-$$ v, q = TVS(V, Q) $$
+$$ v, q = \mathcal{F}_{\text{EMC}}(V, Q) $$
 \end{small}
 
 

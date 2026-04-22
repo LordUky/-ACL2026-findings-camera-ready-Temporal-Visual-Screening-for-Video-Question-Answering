@@ -1,9 +1,9 @@
 \section{Evaluation Results}
 
 
-We highlight the importance of the TVS task, as it addresses a core bottleneck in VideoQA by enabling models to screen for semantically aligned moments in long videos by abstracting task-level semantics and guiding modality-aware information filtering, which in turn enhances multi-modal alignment. In this section, we reveal its importance through: (1) using ground-truth TVS significantly boosts performance (e.g., +7.3\% relative gain in Table \ref{stage3_eval}), showing its potential as a key supervision signal; (2) current methods fail to solve TVS effectively (Table \ref{tab:stage1_eval}), calling for dedicated solutions. These motivate our design of ReSimplifyIt as a plug-and-play approach to this essential task.
+We highlight the importance of the EMC task, as it addresses a core bottleneck in VideoQA by enabling models to screen for semantically aligned moments in long videos by abstracting task-level semantics and guiding modality-aware information filtering, which in turn enhances multi-modal alignment. In this section, we reveal its importance through: (1) using ground-truth EMC significantly boosts performance (e.g., +7.3\% relative gain in Table \ref{stage3_eval}), showing its potential as a key supervision signal; (2) current methods fail to solve EMC effectively (Table \ref{tab:stage1_eval}), calling for dedicated solutions. These motivate our design of ReSimplifyIt as a plug-and-play approach to this essential task.
 
-\paragraph{Temporal Visual Screening} Our ReSimplifyIt framework outperform both baselines significantly, on every metric and subset of our YouCookII-TVS benchmark. On the average performance of the whole test set of YouCookII-TVS, ReSimplifyIt achieved an mIoU score higher than 300\% of the baselines' performance. For query reshaping, our proposed framework also achieved notably good performance. Refer to Table \ref{tab:stage1_eval} and Table \ref{tab:stage1_eval_appendix} for results. We provide the prompt in Appendix \ref{prompts}.
+\paragraph{Endomorphic Multimodal Compression} Our ReSimplifyIt framework outperform both baselines significantly, on every metric and subset of our YouCookII-EMC benchmark. On the average performance of the whole test set of YouCookII-EMC, ReSimplifyIt achieved an mIoU score higher than 300\% of the baselines' performance. For query reshaping, our proposed framework also achieved notably good performance. Refer to Table \ref{tab:stage1_eval} and Table \ref{tab:stage1_eval_appendix} for results. We provide the prompt in Appendix \ref{prompts}.
 
 
 \subparagraph{Ablation Study of ReSimplifyIt Framework}
@@ -11,10 +11,10 @@ We conduct ablation study on ReSimplifyIt framework to evaluate the effectivenes
 
 
 
-\paragraph{TVS guided inference}
-As shown in Table \ref{stage2_eval} and Table \ref{stage2_eval_appendix}, nearly all baselines - ranging from open source models of different sizes and architectures to proprietary models - saw solid absolute performance gain, suggesting that Video-LLMs largely suffer from superfluous cognition noise. The \textbf{consistent performance gains across all benchmarks} underscore the universality of this general reasoning load optimization problem across diverse tasks and scenarios. In contrast, both LLM-assisted reasoning frameworks saw smaller gain. We hypothesize that the design and implementation of these frameworks have intrinsically incorporated the TVS process, by leveraging strong reasoning ability of external LLMs or multi-turn interaction.
+\paragraph{EMC guided inference}
+As shown in Table \ref{stage2_eval} and Table \ref{stage2_eval_appendix}, nearly all baselines - ranging from open source models of different sizes and architectures to proprietary models - saw solid absolute performance gain, suggesting that Video-LLMs largely suffer from superfluous cognition noise. The \textbf{consistent performance gains across all benchmarks} underscore the universality of this general reasoning load optimization problem across diverse tasks and scenarios. In contrast, both LLM-assisted reasoning frameworks saw smaller gain. We hypothesize that the design and implementation of these frameworks have intrinsically incorporated the EMC process, by leveraging strong reasoning ability of external LLMs or multi-turn interaction.
 
-\paragraph{TVS guided training} All checkpoints trained on ground truth TVS labels achieved stable performance gain over their counterparts trained on the vanilla YouCookII-TVS benchmark, which performance gain of the checkpoints trained on the predicted TVS output of ReSimplifyIt framework were weaker. We argue that TVS-guided training benefits Video-LLMs better, particularly when faced with untrimmed videos and complex text instructions requiring multi-hop reasoning. Refer to Table \ref{stage3_eval} for further details.
+\paragraph{EMC guided training} All checkpoints trained on ground truth EMC labels achieved stable performance gain over their counterparts trained on the vanilla YouCookII-EMC benchmark, which performance gain of the checkpoints trained on the predicted EMC output of ReSimplifyIt framework were weaker. We argue that EMC-guided training benefits Video-LLMs better, particularly when faced with untrimmed videos and complex text instructions requiring multi-hop reasoning. Refer to Table \ref{stage3_eval} for further details.
 
 
 
@@ -25,7 +25,7 @@ As shown in Table \ref{stage2_eval} and Table \ref{stage2_eval_appendix}, nearly
 %   \resizebox{0.7\linewidth}{!}{\begin{tabular}{c|cc}
 %     \toprule
 %     \textbf{\multirow{2}{*}{Method}} & \multicolumn{2}{c}{ActivityNetQA} \\ 
-%     & w/tvs & w/o \\ 
+%     & w/emc & w/o \\ 
 %     \midrule
 %     Video-ChatGPT \cite{maaz-etal-2024-video} & 58.5 & 50.5\\ 
 %     Video-LLaVA \cite{lin2023video} & 61.2 & 52.1 \\ 
@@ -35,9 +35,9 @@ As shown in Table \ref{stage2_eval} and Table \ref{stage2_eval_appendix}, nearly
   
 %   \resizebox{\linewidth}{!}{\begin{tabular}{c|cccccccc}
 %     \toprule
-%     \textbf{\multirow{3}{*}{Method}} & \multicolumn{8}{c}{YouCookII-TVS} \\ 
+%     \textbf{\multirow{3}{*}{Method}} & \multicolumn{8}{c}{YouCookII-EMC} \\ 
 %     & \multicolumn{2}{c}{Trr.} & \multicolumn{2}{c}{Tfu.} & \multicolumn{2}{c}{Cmb.} & \multicolumn{2}{c}{Avg.} \\ 
-%     & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o \\
+%     & w/emc & w/o & w/emc & w/o & w/emc & w/o & w/emc & w/o \\
 %     \midrule 
 %     Video-ChatGPT \cite{maaz-etal-2024-video} & 31.7 & 30.5 & 45.2 & 26.5 & 39.8 & 29.73 & 38.9 & 28.91 \\ 
 %     Video-LLaVA \cite{lin2023video} & 39.3 & 37.4 & 46.8 & 28.2 & 43.5 & 31.6 & 43.2 & 32.4 \\ 
@@ -49,7 +49,7 @@ As shown in Table \ref{stage2_eval} and Table \ref{stage2_eval_appendix}, nearly
 %     \toprule
 %     \textbf{\multirow{3}{*}{Method}} & \multicolumn{8}{c}{NExT-QA} \\ 
 %     & \multicolumn{2}{c}{Tem.} & \multicolumn{2}{c}{Cau.} & \multicolumn{2}{c}{Des.} & \multicolumn{2}{c}{Avg.} \\ 
-%     & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o \\
+%     & w/emc & w/o & w/emc & w/o & w/emc & w/o & w/emc & w/o \\
 %     \midrule
 %     Video-ChatGPT \cite{maaz-etal-2024-video} &- &- &- &- &- &- & 45.5 & 38.2 \\ 
 %     Video-LLaVA \cite{lin2023video} &- &- &- &- &- &- & 52.2 & 46.3 \\ 
@@ -61,13 +61,13 @@ As shown in Table \ref{stage2_eval} and Table \ref{stage2_eval_appendix}, nearly
 %     \toprule
 %     \textbf{\multirow{3}{*}{Method}} & \multicolumn{8}{c}{NExT-OE} \\ 
 %     & \multicolumn{2}{c}{Tem.} & \multicolumn{2}{c}{Des.} & \multicolumn{2}{c}{Cau.} & \multicolumn{2}{c}{Avg.} \\ 
-%     & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o & w/tvs & w/o \\
+%     & w/emc & w/o & w/emc & w/o & w/emc & w/o & w/emc & w/o \\
 %     \midrule
 %     Video-ChatGPT \cite{maaz-etal-2024-video} & & & & & & & & \\ 
 %     Video-LLaVA \cite{lin2023video} & & & & & & & & \\ 
 %     ChatUniVi \cite{chatunivi}& & & & & & & & \\ 
 %     \bottomrule
 %   \end{tabular}}
-%   \caption{evaluation results of TVS-guided training by downstream inference.}
+%   \caption{evaluation results of EMC-guided training by downstream inference.}
 %   \label{stage3_eval}
 % \end{table*}

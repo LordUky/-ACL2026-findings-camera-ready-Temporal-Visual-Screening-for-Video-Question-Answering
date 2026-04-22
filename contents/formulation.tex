@@ -1,8 +1,8 @@
-\section{Formulation of Temporal Visual Screening (TVS)}
+\section{Formulation of Endomorphic Multimodal Compression (EMC)}
 
 \subsection{Task Definition}
-\label{tvs_def}
-We formulate Temporal Visual Screening (TVS) as a \textbf{structurally-constrained compression problem} grounded in a generative view of VideoQA. We treat the ground-truth answer $A$ as a latent fact about the world---e.g., a procedural truth such as \textit{``the step after cutting mushrooms is mixing vegetables''}---with the video $V$ and query $Q$ jointly observed as $(V, Q) \sim p(V, Q \mid A)$. A video records an instantiation of the underlying fact; a natural-language query points to an aspect thereof. This mirrors the measurement-invariance principle in the physical sciences: observations \textit{access} a fact rather than constitute it.
+\label{emc_def}
+We formulate Endomorphic Multimodal Compression (EMC) as a \textbf{structurally-constrained compression problem} grounded in a generative view of VideoQA. We treat the ground-truth answer $A$ as a latent fact about the world---e.g., a procedural truth such as \textit{``the step after cutting mushrooms is mixing vegetables''}---with the video $V$ and query $Q$ jointly observed as $(V, Q) \sim p(V, Q \mid A)$. A video records an instantiation of the underlying fact; a natural-language query points to an aspect thereof. This mirrors the measurement-invariance principle in the physical sciences: observations \textit{access} a fact rather than constitute it.
 
 Under this view, any compression $(V, Q) \to (v, q)$ forms the Markov chain
 \vspace{-0.2em}
@@ -14,14 +14,14 @@ and the Data Processing Inequality~\citep{cover2006elements} bounds the mutual i
 \[
 I\big((v, q);\, A\big) \;\leq\; I\big((V, Q);\, A\big),
 \]
-with equality iff $(v, q)$ is an $A$-sufficient statistic of $(V, Q)$.\footnote{See Appendix~\ref{appendix:measurability} for discussion.} TVS is the problem of finding such a sufficient statistic under additional structural and VideoQA-specific constraints: temporal continuity on $v$, answer invariance at instance level across reasonable downstream models, and joint minimality on both modalities. This situates TVS within the \textit{Information Bottleneck lineage}~\citep{tishby1999information, tishby2015deep, alemi2017deep}, instantiated over the original multimodal input space.
+with equality iff $(v, q)$ is an $A$-sufficient statistic of $(V, Q)$.\footnote{See Appendix~\ref{appendix:measurability} for discussion.} EMC is the problem of finding such a sufficient statistic under additional structural and VideoQA-specific constraints: temporal continuity on $v$, answer invariance at instance level across reasonable downstream models, and joint minimality on both modalities. This situates EMC within the \textit{Information Bottleneck lineage}~\citep{tishby1999information, tishby2015deep, alemi2017deep}, instantiated over the original multimodal input space.
 
-Formally, TVS defines a transformation
+Formally, EMC defines a transformation
 \vspace{-0.2em}
 \[
-\mathcal{F}_{\text{TVS}}:\; (V, Q) \;\longmapsto\; (v, q)
+\mathcal{F}_{\text{EMC}}:\; (V, Q) \;\longmapsto\; (v, q)
 \]
-over the original multimodal task space (Figure~\ref{fig:tvs_task_compare}), where $(v, q)$ is required to satisfy two \textit{admissibility conditions} and minimize two complementary \textit{complexity measures}.
+over the original multimodal task space (Figure~\ref{fig:emc_task_compare}), where $(v, q)$ is required to satisfy two \textit{admissibility conditions} and minimize two complementary \textit{complexity measures}.
 
 \paragraph{Admissibility conditions.}
 \begin{itemize}[leftmargin=*,topsep=2pt,itemsep=1pt]
@@ -37,7 +37,7 @@ over the original multimodal task space (Figure~\ref{fig:tvs_task_compare}), whe
     \[
     \mathcal{M}(q, v) \;=\; \mathcal{M}(Q, V).
     \]
-    This is the VideoQA-natural form of the sufficient-statistic identity $I((v,q); A) = I((V,Q); A)$: since VideoQA has no distribution-averaged notion of correctness; every instance has a specific ground-truth answer that the user expects the model to return. Sufficiency must therefore hold at instance level across reasonable downstream models rather than merely on average. Under this instantiation, (C2) implies the MI identity by preserving the full distribution of model outputs,\footnote{See Appendix~\ref{appendix:mi_answer_link} for discussion.} locating TVS in the sufficient-statistic regime while specifying its VideoQA-specific form.
+    This is the VideoQA-natural form of the sufficient-statistic identity $I((v,q); A) = I((V,Q); A)$: since VideoQA has no distribution-averaged notion of correctness; every instance has a specific ground-truth answer that the user expects the model to return. Sufficiency must therefore hold at instance level across reasonable downstream models rather than merely on average. Under this instantiation, (C2) implies the MI identity by preserving the full distribution of model outputs,\footnote{See Appendix~\ref{appendix:mi_answer_link} for discussion.} locating EMC in the sufficient-statistic regime while specifying its VideoQA-specific form.
 \end{itemize}
 
 \noindent Let $\mathcal{A}$ denote the set of pairs $(v, q)$ satisfying both (C1) and (C2).
@@ -55,7 +55,7 @@ Rather than tracing a Pareto frontier, the two objectives admit a unique solutio
 \]
 
 
-\subsection{Integrating TVS into Video-LLM Workflows}
-\label{subsec:tvs_integration}
+\subsection{Integrating EMC into Video-LLM Workflows}
+\label{subsec:emc_integration}
 
-Because $\mathcal{F}_{\text{TVS}}$ is endomorphic, any existing Video-LLM training or inference pipeline continues to operate unchanged, receiving $(v, q)$ in place of $(V, Q)$; see Appendix~\ref{appendix:tvs_integration} for details.
+Because $\mathcal{F}_{\text{EMC}}$ is endomorphic, any existing Video-LLM training or inference pipeline continues to operate unchanged, receiving $(v, q)$ in place of $(V, Q)$; see Appendix~\ref{appendix:emc_integration} for details.
