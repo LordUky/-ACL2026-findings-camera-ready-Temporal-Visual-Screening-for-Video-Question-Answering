@@ -725,6 +725,17 @@ This section provides per-dataset cost-driver statistics for both TVS instantiat
 \end{table}
 
 
+\section{TVS Integration into Video-LLM Workflows}
+\label{appendix:tvs_integration}
+
+We expand the deployment modes summarized in Section~\ref{subsec:tvs_integration}. Because $\mathcal{F}_{\text{TVS}}$ is endomorphic, both modes slot into existing pipelines with no architectural change.
+
+\paragraph{TVS for Inference-Time Simplification in Video-LLMs.} At inference, TVS pre-processes $(V, Q)$ into $(v, q)$ (see Section~\ref{sec:method}), reducing the temporal and semantic complexity the downstream model must handle and concentrating it on compact, task-relevant content for fine-grained temporal reasoning and direct visual grounding.
+
+\paragraph{TVS for Improving Training-Time Visual-Language Alignment.}
+Video-LLM supervision tuples $(V, Q, a)$ often couple abstract or multi-hop queries with unfocused video. TVS reshapes them into compact triples $(v, q, a)$, where $v$ is a high-utility segment and $q$ is a grounded reformulation of $Q$, offloading off-target supervision to upstream modules so the model specializes in two core competencies: temporal understanding and multimodal alignment.
+
+
 \section{Additional Discussion}
 \label{appendix:discussion}
 

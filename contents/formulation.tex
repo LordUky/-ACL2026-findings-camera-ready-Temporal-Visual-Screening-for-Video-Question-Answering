@@ -14,7 +14,7 @@ and the Data Processing Inequality~\citep{cover2006elements} bounds the mutual i
 \[
 I\big((v, q);\, A\big) \;\leq\; I\big((V, Q);\, A\big),
 \]
-with equality iff $(v, q)$ is an $A$-sufficient statistic of $(V, Q)$.\footnote{The mutual-information terms articulate TVS's membership in the sufficient-statistic family; they are a \textit{theoretical characterization} of the task, not a computable training signal to be estimated numerically. See Appendix~\ref{appendix:measurability} for the decomposition between the information-theoretic language of the formulation and the operational content carried by (C1--C2) and (O1--O2).} TVS is the problem of finding such a sufficient statistic under additional structural and VideoQA-specific constraints: temporal continuity on $v$, pointwise answer invariance across reasonable downstream models (formalized in (C2)), and joint minimality on both modalities. This situates TVS within the \textit{Information Bottleneck lineage}~\citep{tishby1999information, tishby2015deep, alemi2017deep}, instantiated over the discrete bimodal input space.
+with equality iff $(v, q)$ is an $A$-sufficient statistic of $(V, Q)$.\footnote{See Appendix~\ref{appendix:measurability} for discussion.} TVS is the problem of finding such a sufficient statistic under additional structural and VideoQA-specific constraints: temporal continuity on $v$, pointwise answer invariance across reasonable downstream models (formalized in (C2)), and joint minimality on both modalities. This situates TVS within the \textit{Information Bottleneck lineage}~\citep{tishby1999information, tishby2015deep, alemi2017deep}, instantiated over the discrete bimodal input space.
 
 Formally, TVS defines a transformation
 \vspace{-0.2em}
@@ -37,7 +37,7 @@ over the original bimodal task space (Figure~\ref{fig:tvs_task_compare}), where 
     \[
     \mathcal{M}(q, v) \;=\; \mathcal{M}(Q, V).
     \]
-    This is the VideoQA-natural form of the sufficient-statistic identity $I((v,q); A) = I((V,Q); A)$: since VideoQA has no distribution-averaged notion of correctness---every instance has a specific ground-truth answer that the user expects the model to return---sufficiency must hold pointwise across reasonable downstream models rather than merely on average. Under this instantiation, (C2) implies the MI identity by preserving the full distribution of model outputs,\footnote{See Appendix~\ref{appendix:mi_answer_link} for the formal link between pointwise invariance and MI equality via the sufficient-statistic property~\citep[Ch.~2.9]{cover2006elements}.} locating TVS in the sufficient-statistic regime while specifying its VideoQA-specific form.
+    This is the VideoQA-natural form of the sufficient-statistic identity $I((v,q); A) = I((V,Q); A)$: since VideoQA has no distribution-averaged notion of correctness---every instance has a specific ground-truth answer that the user expects the model to return---sufficiency must hold at instance level across reasonable downstream models rather than merely on average. Under this instantiation, (C2) implies the MI identity by preserving the full distribution of model outputs,\footnote{See Appendix~\ref{appendix:mi_answer_link} for discussion.} locating TVS in the sufficient-statistic regime while specifying its VideoQA-specific form.
 \end{itemize}
 
 \noindent Let $\mathcal{A}$ denote the set of pairs $(v, q)$ satisfying both (C1) and (C2).
@@ -56,10 +56,6 @@ Rather than tracing a Pareto frontier, the two objectives admit a unique solutio
 
 
 \subsection{Integrating TVS into Video-LLM Workflows}
+\label{subsec:tvs_integration}
 
-TVS plugs into both training and inference pipelines of video-language models as a front-end adapter.
-
-\paragraph{TVS for Inference-Time Simplification in Video-LLMs} At inference, TVS pre-processes $(V, Q)$ into $(v, q)$ (see Section~\ref{sec:method}), reducing the temporal and semantic complexity the downstream model must handle and concentrating it on compact, task-relevant content for fine-grained temporal reasoning and direct visual grounding.
-
-\paragraph{TVS for Improving Training-Time Visual-Language Alignment}
-Video-LLM supervision tuples $(V, Q, a)$ often couple abstract or multi-hop queries with unfocused video. TVS reshapes them into compact triples $(v, q, a)$, where $v$ is a high-utility segment and $q$ is a grounded reformulation of $Q$, offloading off-target supervision to upstream modules so the model specializes in two core competencies: temporal understanding and multimodal alignment.
+Because $\mathcal{F}_{\text{TVS}}$ is endomorphic---it returns a pair in the same $(V, Q)$ space---any existing Video-LLM training or inference pipeline continues to operate unchanged, receiving $(v, q)$ in place of $(V, Q)$; see Appendix~\ref{appendix:tvs_integration} for the concrete training-time and inference-time deployment modes.
