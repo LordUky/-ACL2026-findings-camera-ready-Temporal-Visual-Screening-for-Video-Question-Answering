@@ -14,14 +14,14 @@ and the Data Processing Inequality~\citep{cover2006elements} bounds the mutual i
 \[
 I\big((v, q);\, A\big) \;\leq\; I\big((V, Q);\, A\big),
 \]
-with equality iff $(v, q)$ is an $A$-sufficient statistic of $(V, Q)$.\footnote{See Appendix~\ref{appendix:measurability} for discussion.} TVS is the problem of finding such a sufficient statistic under additional structural and VideoQA-specific constraints: temporal continuity on $v$, answer invariance at instance level across reasonable downstream models, and joint minimality on both modalities. This situates TVS within the \textit{Information Bottleneck lineage}~\citep{tishby1999information, tishby2015deep, alemi2017deep}, instantiated over the discrete bimodal input space.
+with equality iff $(v, q)$ is an $A$-sufficient statistic of $(V, Q)$.\footnote{See Appendix~\ref{appendix:measurability} for discussion.} TVS is the problem of finding such a sufficient statistic under additional structural and VideoQA-specific constraints: temporal continuity on $v$, answer invariance at instance level across reasonable downstream models, and joint minimality on both modalities. This situates TVS within the \textit{Information Bottleneck lineage}~\citep{tishby1999information, tishby2015deep, alemi2017deep}, instantiated over the original multimodal input space.
 
 Formally, TVS defines a transformation
 \vspace{-0.2em}
 \[
 \mathcal{F}_{\text{TVS}}:\; (V, Q) \;\longmapsto\; (v, q)
 \]
-over the original bimodal task space (Figure~\ref{fig:tvs_task_compare}), where $(v, q)$ is required to satisfy two \textit{admissibility conditions} and minimize two complementary \textit{complexity measures}.
+over the original multimodal task space (Figure~\ref{fig:tvs_task_compare}), where $(v, q)$ is required to satisfy two \textit{admissibility conditions} and minimize two complementary \textit{complexity measures}.
 
 \paragraph{Admissibility conditions.}
 \begin{itemize}[leftmargin=*,topsep=2pt,itemsep=1pt]
