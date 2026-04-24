@@ -62,7 +62,7 @@ InternVL3.5 \citep{InternVL3} & 14B & \textbf{60.1} & 58.9 & \textbf{52.1} & 48.
 Qwen2.5-VL \citep{qwen2.5vl} & 3B & \textbf{57.6} & 55.8 & \textbf{47.9} & 40.3 & \textbf{61.8} & 57.2 & \textbf{44.2} & 36.3 & \textbf{45.3} & 41.3 & \textbf{59.0} & 57.7 & \textbf{54.8} & 51.6 \\
 Qwen2.5-VL \citep{qwen2.5vl} & 7B & \textbf{58.0} & 55.2 & \textbf{48.0} & 41.1 & \textbf{68.2} & 66.4 & \textbf{43.0} & 34.8 & \textbf{43.1} & 37.6 & \textbf{60.0} & 58.5 & \textbf{55.2} & 53.4 \\
 Qwen3-VL \citep{qwen3vl} & 4B & \textbf{59.9} & 57.7 & \textbf{48.0} & 45.6 & \textbf{71.2} & 70.2 & \textbf{43.2} & 37.5 & \textbf{49.0} & 42.8 & 60.5 & \textbf{60.6} & \textbf{61.1} & 58.2 \\
-Qwen3-VL\citep{qwen3vl}  & 32B & \textbf{60.9} & 60.5 & \textbf{47.8} & 45.2 & \textbf{72.8} & 72.6 & -- & -- & \textbf{44.9} & 38.7 & \textbf{64.0} & 61.2 & \textbf{61.4} & 58.9 \\
+Qwen3-VL \citep{qwen3vl} & 32B & \textbf{60.9} & 60.5 & \textbf{47.8} & 45.2 & \textbf{72.8} & 72.6 & -- & -- & \textbf{44.9} & 38.7 & \textbf{64.0} & 61.2 & \textbf{61.4} & 58.9 \\
 LLaVA-OneVision \citep{llavaonevision} & 4B & -- & -- & -- & -- & \textbf{18.6} & 18.2 & -- & -- & \textbf{13.5} & 5.5 & -- & -- & -- & -- \\
 LLaVA-OneVision \citep{llavaonevision} & 8B & \textbf{32.4} & 27.5 & -- & -- & \textbf{38.4} & 32.5 & -- & -- & \textbf{14.1} & 12.2 & 51.1 & \textbf{51.3} & -- & -- \\
 \midrule
@@ -108,7 +108,7 @@ GPT-4-turbo \citep{gpt4} & - & \textbf{77.1} & 74.34 & \textbf{79.39} & 70.61 & 
     \bottomrule
   \end{tabular}
   }
-  \caption{Evaluation results of EMC-guided training by downstream inference. On the rows, \textit{w/o emc}, \textit{w/emc (gt)}, and \textit{w/emc (pred)} indicates training with vanilla EMCompress dataset, training with ground truth EMC labels, and training with the predicted EMC results, respectively; on the columns, \textit{w/o emc} and \textit{w/emc} indicates the inference mode.
+  \caption{Evaluation results of EMC-guided training by downstream inference. On the rows, \textit{w/o emc}, \textit{w/emc (gt)}, and \textit{w/emc (pred)} indicate training with vanilla EMCompress dataset, training with ground truth EMC labels, and training with the predicted EMC results, respectively; on the columns, \textit{w/o emc} and \textit{w/emc} indicate the inference mode.
   }
   \label{stage3_eval}
 \end{table*}
@@ -117,9 +117,9 @@ GPT-4-turbo \citep{gpt4} & - & \textbf{77.1} & 74.34 & \textbf{79.39} & 70.61 & 
 
 \subsection{EMCompress}
 \label{yc2emc}
-As EMC is a new task, few benchmarks is capable of performing the evaluation. While some studies \citep{tvqa, groundedmultihopvideoqalongform, tvqa+} have explored grounded VideoQA which may be mistakenly seen as equivalent, they mainly focus on improving visual evidence. See Appendix \ref{appendix: related_work} for details. The synchronous update of video and query inputs in EMC naturally resolves any potential semantic mismatch, maximally enhancing generalizability and adaptability of our work.
+As EMC is a new task, few benchmarks are capable of performing the evaluation. While some studies \citep{tvqa, groundedmultihopvideoqalongform, tvqa+} have explored grounded VideoQA which may be mistakenly seen as equivalent, they mainly focus on improving visual evidence. See Appendix \ref{appendix: related_work} for details. The synchronous update of video and query inputs in EMC naturally resolves any potential semantic mismatch, maximally enhancing generalizability and adaptability of our work.
 
-To bridge this gap, we introduce the EMCompress benchmark, which provides both EMC and standard VideoQA labels. Built upon the YouCookII dataset \citep{ZhXuCoAAAI18}, it comprises 2,754 datapoints split into training, validation, and test sets (roughly 7:2:1). This dual-task benchmark enables unified evaluation of both EMC and VideoQA. Refer to Appendix~\ref{yc2emc_appendix} for more details.
+To bridge this gap, we introduce the EMCompress benchmark, which provides both EMC and standard VideoQA labels. Built upon the YouCookII dataset \citep{ZhXuCoAAAI18}, it comprises 2,754 datapoints split into training, validation, and test sets (roughly 7:1:2). This dual-task benchmark enables unified evaluation of both EMC and VideoQA. Refer to Appendix~\ref{yc2emc_appendix} for more details.
 
 
 
@@ -140,7 +140,7 @@ We provide implementation details in Appendix \ref{appendix:imp}.
 
 
 \paragraph{EMC-guided inference}
-Integrating EMC as a front-end module into existing VideoQA agents yields a novel VideoQA framework. We adopt several Video-LLMs—Video-ChatGPT~\citep{maaz-etal-2024-video}, Video-LLaVA~\citep{lin2023video}, ChatUniVi~\citep{chatunivi}, LLaVA-NeXT~\citep{liu2024llavanext}, InternVL3.5~\citep{InternVL3}, Qwen2.5VL~\citep{qwen2.5vl}, Qwen3VL~\citep{qwen3vl}, LLaVA-OneVision~\citep{llavaonevision}—as representative baselines. We also examine LLM-assisted frameworks such as VideoTree~\citep{wang2024videotreeadaptivetreebasedvideo} and VideoAgent~\citep{VideoAgent}, which, unlike the static encoding approaches of Video-LLMs, dynamically extract video frames based on the textual query.
+Integrating EMC as a front-end module into existing VideoQA agents yields a novel VideoQA framework. We adopt several Video-LLMs---Video-ChatGPT~\citep{maaz-etal-2024-video}, Video-LLaVA~\citep{lin2023video}, ChatUniVi~\citep{chatunivi}, LLaVA-NeXT~\citep{liu2024llavanext}, InternVL3.5~\citep{InternVL3}, Qwen2.5-VL~\citep{qwen2.5vl}, Qwen3-VL~\citep{qwen3vl}, LLaVA-OneVision~\citep{llavaonevision}---as representative baselines. We also examine LLM-assisted frameworks such as VideoTree~\citep{wang2024videotreeadaptivetreebasedvideo} and VideoAgent~\citep{VideoAgent}, which, unlike the static encoding approaches of Video-LLMs, dynamically extract video frames based on the textual query.
 
 
 \paragraph{EMC-guided training}

@@ -37,7 +37,7 @@ over the original multimodal task space (Figure~\ref{fig:emc_task_compare}), whe
     \[
     \mathcal{M}(q, v) \;=\; \mathcal{M}(Q, V).
     \]
-    This is the VideoQA-natural form of the sufficient-statistic identity $I((v,q); A) = I((V,Q); A)$: since VideoQA has no distribution-averaged notion of correctness; every instance has a specific ground-truth answer that the user expects the model to return. Sufficiency must therefore hold at instance level across reasonable downstream models rather than merely on average. Under this instantiation, (C2) implies the MI identity by preserving the full distribution of model outputs,\footnote{See Appendix~\ref{appendix:mi_answer_link} for discussion.} locating EMC in the sufficient-statistic regime while specifying its VideoQA-specific form.
+    This is the VideoQA-natural form of the sufficient-statistic identity $I((v,q); A) = I((V,Q); A)$: VideoQA has no distribution-averaged notion of correctness---every instance has a specific ground-truth answer that the user expects the model to return, so sufficiency must hold at instance level across reasonable downstream models rather than merely on average. Under this instantiation, (C2) implies the MI identity by preserving the full distribution of model outputs,\footnote{See Appendix~\ref{appendix:mi_answer_link} for discussion.} locating EMC in the sufficient-statistic regime while specifying its VideoQA-specific form.
 \end{itemize}
 
 \noindent Let $\mathcal{A}$ denote the set of pairs $(v, q)$ satisfying both (C1) and (C2).

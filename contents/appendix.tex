@@ -384,13 +384,13 @@ More details about the dataset statistics can be found in Figure \ref{fig:yc2emc
 
 We first ablate the modular design—responsible for facilitating structured reasoning—by proposing the \textbf{ReSimplifyIt-simple} variant. In this setting, all underlying interfaces for handling textual and visual inputs, such as ISODATA-clustering (Algorithm~\ref{alg_isodata}) and frame-caption querying, are preserved. However, the entire reasoning pipeline is collapsed into a single, universal agent. Specifically, we initialize an external agentic LLM with task descriptions and operational instructions, and expose the aforementioned interfaces either through conversational context or tool invocation. This unified agent is then responsible for all reasoning procedures—functionally covering the roles of the Launcher, Validator, and Viewer modules, as well as memory tracking—in the original ReSimplifyIt framework, and ultimately produces the final output.
 
-Then, we further ablate the video access completely, i.e. No access to the video content is provided throughout the \textit{entire} reasoning process of the external agent. As the multi-turn interaction (feedback) are all essentially from the reference to video information to refine text input, disabling video access also renders multi-turn interactions unnecessary. To reflect this, we introduce the \textbf{ReSimplifyIt-blind} variant, in which a tool-calling LLM generates a rewritten query and a fixed sequence of tool invocations within a single-turn conversation. This sequence is subsequently executed by a separate executor module to produce the video output.
+Then, we further ablate the video access completely, i.e., no access to the video content is provided throughout the \textit{entire} reasoning process of the external agent. As the multi-turn interactions are essentially references to video information for refining text input, disabling video access also renders multi-turn interactions unnecessary. To reflect this, we introduce the \textbf{ReSimplifyIt-blind} variant, in which a tool-calling LLM generates a rewritten query and a fixed sequence of tool invocations within a single-turn conversation. This sequence is subsequently executed by a separate executor module to produce the video output.
 
 Refer to Figure \ref{fig:workflow_figure_ablations} for an illustrations of these frameworks.
 
 \subsection{Evaluation Results}
 
-Evaluation results are presented in Table~\ref{tab:stage1_eval_ablation}. Although the removal of modular design yields comparable video outputs, the modular architecture still demonstrates advantages—particularly on the \textit{Multifaceted Integrative} subset, which involves more complex multi-hop reasoning, demonstrating the effectiveness of modular design and structured reasoning in more complex and intricate reasoning scenario. In comparison, the ablation of video access brings notable performance drop, underscoring the critical role of cooperative, feedback-driven multi-turn interaction. This aligns with the interdependency of the vision and text modality, which lies at the core of our EMC task formulation, reflecting the essence of the task initiative.
+Evaluation results are presented in Table~\ref{tab:stage1_eval_ablation}. Although the removal of modular design yields comparable video outputs, the modular architecture still demonstrates advantages—particularly on the \textit{Multifaceted Integrative} subset, which involves more complex multi-hop reasoning, demonstrating the effectiveness of modular design and structured reasoning in more complex and intricate reasoning scenarios. In comparison, the ablation of video access brings notable performance drop, underscoring the critical role of cooperative, feedback-driven multi-turn interaction. This aligns with the interdependency of the vision and text modality, which lies at the core of our EMC task formulation, reflecting the essence of the task initiative.
 
 \paragraph{A performance--cost spectrum of EMC instantiations.}
 Taken together, ReSimplifyIt, ReSimplifyIt-simple, and ReSimplifyIt-blind expose an explicit performance--cost spectrum of EMC rather than a single operating point. The full ReSimplifyIt prioritizes robustness and exploratory reasoning through iterative multi-agent interaction, at the cost of more tool calls, captions, and LLM turns. ReSimplifyIt-simple flattens the interaction structure into a single unified agent to substantially reduce overhead, at a small accuracy cost. ReSimplifyIt-blind further removes all video access during compression, representing the lowest-cost extreme in which the trimming plan is produced entirely from the language query. This spectrum demonstrates that EMC can be configured either for efficiency-oriented deployment (Simple/Blind) or for maximal reasoning capability (Full) depending on application requirements, and that the observed gains arise from the compression mechanism itself rather than from any fixed amount of inference compute. Section~\ref{sec:efficiency} quantifies the cost characteristics of each variant across benchmarks.
@@ -528,7 +528,7 @@ Here are some examples and explanations for infeasible trimming instructions:
 
 You can invoke a viewer multiple times to acquire the video content (partial content each time), which viewer is a downstream module prepared to assist you.
 
-Note that the viewer is capable to deal with two type of questions:
+Note that the viewer is capable to deal with two types of questions:
 
 1. snippet rough scanning, e.g. "what is the video about from xxx second to xxx second"?
 2. localizing, e.g. "which segment contains xxx (event/object)?"
@@ -555,7 +555,7 @@ Prompt for Viewer module:
 
 \begin{lstlisting}
 
-You are a helpful and smart assistant that can respond to an upstream request a video by invoking tools. The length of this video is [video_length_flag].
+You are a helpful and smart assistant that can respond to an upstream request about a video by invoking tools. The length of this video is [video_length_flag].
 
 Here is the content of the request: [validator_request_flag].
 
