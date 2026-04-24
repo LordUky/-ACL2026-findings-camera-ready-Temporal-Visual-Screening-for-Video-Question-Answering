@@ -386,7 +386,7 @@ We first ablate the modular design—responsible for facilitating structured rea
 
 Then, we further ablate the video access completely, i.e., no access to the video content is provided throughout the \textit{entire} reasoning process of the external agent. As the multi-turn interactions are essentially references to video information for refining text input, disabling video access also renders multi-turn interactions unnecessary. To reflect this, we introduce the \textbf{ReSimplifyIt-blind} variant, in which a tool-calling LLM generates a rewritten query and a fixed sequence of tool invocations within a single-turn conversation. This sequence is subsequently executed by a separate executor module to produce the video output.
 
-Refer to Figure \ref{fig:workflow_figure_ablations} for an illustrations of these frameworks.
+Refer to Figure \ref{fig:workflow_figure_ablations} for an illustration of these frameworks.
 
 \subsection{Evaluation Results}
 
