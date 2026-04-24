@@ -95,7 +95,7 @@
             \small
             \begin{algorithmic}[1]
                 \Require Video $v$, question $q$
-                \Ensure Compressed video $V'$, compressed question $q'
+                \Ensure Compressed video $V'$, compressed question $q'$
 
                 \State $V\_copy, q\_copy \gets V, q$
                 \State $success\_history, failure\_history \gets \texttt{SuccessHistory()}, \texttt{FailureHistory()}$
@@ -540,7 +540,7 @@ The video length is [video_length_flag] seconds, and its frame rate is [frame_ra
 
 Now, in each following turn of this conversation, you need to give your response in this json format: {"decision": [your decision], "message": [your message]}. This works as follows:
 [your decision]: either "succeeded", "failed", or "view". "succeeded" means that the plan is successfully implemented, "failed" means that it is not, and by "view" you invoke the viewer to provide partial video content for you. If you choose "view", the viewer will take your message and return as you requested, and the conversation will continue. If you choose "succeeded" or "failed", it will be your final decision and the conversation will end.
-[your message]: if you choose "succeeded" as your decision, then it should be the two-layer list as mentioned before, as the video edit result of the plan. If you choose "failed", this should be a brief reason on the failure (e.g. requested timestamp exceeds video length, video doesn’t have the object/event needed, etc.). If you choose "view", this should be the question to ask the viewer about the video content.
+[your message]: if you choose "succeeded" as your decision, then it should be the two-layer list as mentioned before, as the video edit result of the plan. If you choose "failed", this should be a brief reason on the failure (e.g. requested timestamp exceeds video length, video doesn't have the object/event needed, etc.). If you choose "view", this should be the question to ask the viewer about the video content.
 
 Hint: it is not always necessary to invoke the viewer. [In context example flags 3]
 
